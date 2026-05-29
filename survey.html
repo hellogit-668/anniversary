@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>我们的回忆 · 互动问答</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#000;-webkit-tap-highlight-color:transparent}
+#app{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a1a2e 0%,#000 70%)}
+canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+
+.card{position:relative;z-index:2;width:min(88vw,400px);background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:clamp(28px,6vw,40px);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);text-align:center;transition:all 0.6s cubic-bezier(0.4,0,0.2,1)}
+.card.slide-out{opacity:0;transform:translateX(-40px);filter:blur(4px)}
+.card.slide-in{opacity:1;transform:translateX(0)}
+
+.card .question{color:#fff;font-size:clamp(18px,4vw,26px);letter-spacing:2px;line-height:1.7;margin-bottom:28px}
+.card .options{display:flex;flex-direction:column;gap:10px}
+.card .options button{width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:#fff;font-size:clamp(14px,2.5vw,16px);letter-spacing:2px;cursor:pointer;transition:all 0.3s ease}
+.card .options button:active{background:rgba(255,216,155,0.2);border-color:rgba(255,216,155,0.4);transform:scale(0.97)}
+.card .options button.chosen{background:rgba(255,216,155,0.18);border-color:#ffd89b;color:#ffd89b}
+.card .next-btn{margin-top:24px;padding:10px 32px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-size:14px;letter-spacing:2px;cursor:pointer;opacity:0;pointer-events:none;transition:all 0.3s ease}
+.card .next-btn.visible{opacity:1;pointer-events:auto}
+.card .next-btn:active{background:rgba(255,255,255,0.2)}
+
+.result{position:relative;z-index:2;text-align:center;padding:24px}
+.result h2{color:#ffd89b;font-size:clamp(22px,5vw,32px);letter-spacing:4px;margin-bottom:16px}
+.result .heart{font-size:clamp(16px,3vw,22px);color:#fff;letter-spacing:2px;line-height:2;opacity:0.8}
+.result .back-link{display:inline-block;margin-top:24px;padding:12px 28px;border-radius:24px;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);text-decoration:none;font-size:14px;letter-spacing:2px;transition:all 0.3s ease;cursor:pointer}
+.result .back-link:active{background:rgba(255,255,255,0.12)}
+
+.fade-in{animation:fadeUp 0.7s ease forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.progress{position:fixed;top:clamp(12px,3vw,24px);left:50%;transform:translateX(-50%);z-index:3;display:flex;gap:8px}
+.progress .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);transition:all 0.3s ease}
+.progress .dot.done{background:#ffd89b;box-shadow:0 0 8px rgba(255,216,155,0.4)}
+.progress .dot.current{background:#fff;box-shadow:0 0 10px rgba(255,255,255,0.5)}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="bg"></canvas>
+  <div class="progress" id="progress"></div>
+  <div class="card" id="card"></div>
+  <div class="result" id="result" style="display:none"></div>
+</div>
+
+<script>
+// Stars background
+const cv=document.getElementById('bg'),ctx=cv.getContext('2d');
+function rs(){cv.width=innerWidth;cv.height=innerHeight}
+addEventListener('resize',rs);rs();
+const stars=Array.from({length:100},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:Math.random()*1.5+0.3,a:Math.random(),da:(Math.random()-0.5)*0.01}));
+function draw(){ctx.clearRect(0,0,cv.width,cv.height);stars.forEach(s=>{s.a+=s.da;if(s.a>1||s.a<0.15)s.da*=-1;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${s.a})`;ctx.fill()});requestAnimationFrame(draw)}
+draw();
+
+// Questions
+const questions = [
+  {
+    q:'还记得我们第一次见面是在哪里吗？',
+    opts:['学校门口','图书馆','食堂','咖啡店']
+  },
+  {
+    q:'你最喜欢我们一起做的一件事是什么？',
+    opts:['一起看电影','一起散步','一起做饭','一起去海边']
+  },
+  {
+    q:'你觉得这一年来最难忘的瞬间是？',
+    opts:['第一次牵手','生日惊喜','一起旅行','每天的陪伴']
+  },
+  {
+    q:'对我们未来最期待的是？',
+    opts:['一起去更多地方','每天都能见到','共同的梦想','简简单单在一起']
+  }
+];
+
+let step=0,answers=[];
+const card=$('card'),result=$('result'),progress=$('progress');
+
+// Build progress dots
+progress.innerHTML=questions.map((_,i)=>`<div class="dot${i===0?' current':''}"></div>`).join('');
+
+function renderQuestion(){
+  if(step>=questions.length)return showResult();
+  const q=questions[step];
+  card.innerHTML=`
+    <p class="question">${q.q}</p>
+    <div class="options">${q.opts.map((o,i)=>`<button data-idx="${i}">${o}</button>`).join('')}</div>
+    <button class="next-btn" id="nextBtn">下一题 ▸</button>
+  `;
+  card.classList.remove('slide-out');card.classList.add('slide-in');
+
+  const btns=card.querySelectorAll('.options button');
+  const nextBtn=$('nextBtn');
+  let chosen=null;
+
+  btns.forEach(b=>b.addEventListener('click',()=>{
+    btns.forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen');
+    chosen=parseInt(b.dataset.idx);nextBtn.classList.add('visible');
+  }));
+  nextBtn.addEventListener('click',()=>{
+    if(chosen===null)return;
+    answers.push(chosen);
+    step++;
+    // Update progress
+    const dots=progress.querySelectorAll('.dot');
+    dots.forEach((d,i)=>{d.classList.remove('current');if(i<step)d.classList.add('done');if(i===step&&i<questions.length)d.classList.add('current')});
+    card.classList.add('slide-out');
+    setTimeout(renderQuestion,500);
+  });
+}
+
+function showResult(){
+  card.style.display='none';progress.style.display='none';result.style.display='block';
+  result.innerHTML=`
+    <h2 class="fade-in">谢谢你的回答</h2>
+    <p class="heart fade-in" style="animation-delay:0.3s">每一个答案，都是我们故事的一部分</p>
+    <p class="heart fade-in" style="animation-delay:0.6s">无论未来怎样，感谢这一年有你在</p>
+    <p class="heart fade-in" style="animation-delay:0.9s;font-size:clamp(20px,5vw,30px);margin-top:12px;">❤</p>
+    <a class="back-link fade-in" style="animation-delay:1.2s" href="index.html">← 返回我们的回忆</a>
+  `;
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
