@@ -58,6 +58,11 @@ img{display:block;max-width:100%}
 .story-hint{color:rgba(255,255,255,0.28);font-size:clamp(11px,1.8vw,13px);letter-spacing:2px;margin-top:16px;animation:pulse 2.2s ease-in-out infinite;opacity:1;transition:opacity 0.5s ease}
 .story-stage.revealed .story-hint{opacity:0}
 
+/* ===== Lightbox ===== */
+#lightbox{position:fixed;top:0;left:0;width:100%;height:100%;z-index:200;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s ease;cursor:pointer}
+#lightbox.show{opacity:1;pointer-events:auto}
+#lightbox img{max-width:94vw;max-height:94vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 48px rgba(0,0,0,0.6)}
+
 /* Layout A: Hero + text */
 .layout-a .story-stage{justify-content:center}
 
@@ -212,6 +217,8 @@ img{display:block;max-width:100%}
 
   <!-- Background music -->
   <audio id="bgm" loop preload="auto" src="多幸运.mp3"></audio>
+  <!-- Lightbox -->
+  <div id="lightbox"><img src="" alt=""></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -506,7 +513,7 @@ const storyStates = {};
 function doReveal(idx, stage, photo, text, hint) {
   if (storyStates[idx]) return;
   storyStates[idx] = true;
-  busy = true; setTimeout(() => { busy = false; }, 600); // block same-click advance
+  busy = true; setTimeout(() => { busy = false; }, 600);
   stage.classList.add('revealed');
   if (photo) photo.classList.add('revealed');
   if (text) text.classList.add('visible');
@@ -714,8 +721,15 @@ $('app').addEventListener('click', (e) => {
   if (busy) return;
   if (e.target.closest('#nav-buttons') || e.target.closest('#download-btn') ||
       e.target.closest('#music-toggle') || e.target.closest('#download-modal')) return;
-  // S1 fireworks + advance
-  
+  // Lightbox: clicking revealed photo → enlarge
+  const rp=e.target.closest('.story-photo.revealed, .polaroid-wrap.revealed img');
+  if(rp&&rp.src&&!busy){
+    e.stopPropagation();
+    lbImg.src=rp.src;
+    lb.classList.add('show');
+    return;
+  }
+
   // S2: no advance
   if (cur === 2) return;
   // story: block if not revealed
@@ -1008,6 +1022,11 @@ go = function (tgt) {
   if (fwOn) drawFw();
   requestAnimationFrame(loop);
 })();
+
+// === LIGHTBOX ===
+const lb=document.getElementById('lightbox');
+const lbImg=lb.querySelector('img');
+lb.addEventListener('click',e=>{e.stopPropagation();lb.classList.remove('show');});
 
 // === INIT ===
 console.log('%c 我们的回忆 %c已就绪', 'font-size:20px;color:#ffd89b', '');
