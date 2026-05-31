@@ -734,8 +734,8 @@ $('app').addEventListener('click', (e) => {
   if (busy) return;
   if (e.target.closest('#nav-buttons') || e.target.closest('#download-btn') ||
       e.target.closest('#music-toggle') || e.target.closest('#download-modal')) return;
-  // S1: fireworks page — clicking triggers fireworks, does NOT advance
-  if (cur === 1) return;
+  // S1: clicking triggers fireworks AND advances
+  // (firework handler on S1 fires alongside)
   // S2: photo float page — does NOT advance on click
   if (cur === 2) return;
   // Story pages: block advance if not yet revealed; allow after reveal
@@ -753,7 +753,13 @@ setTimeout(() => { s0Ready = true; }, 3000);
 $('s0').addEventListener('click', () => {
   if (cur !== 0) return;
   if (!s0Ready) return;
-  if (!musicPlaying) startMusic();
+  if (!musicPlaying) {
+    musicPlaying = true;
+    bgm.play().then(() => {
+      bgm.playbackRate = 0.5;
+      musicBtn.classList.add('playing'); musicBtn.textContent = '♫';
+    }).catch(() => { musicPlaying = false; });
+  }
   nxt();
 });
 
@@ -1034,14 +1040,13 @@ const _go = go;
 go = function (tgt) {
   _go(tgt);
   // S1: fireworks started by animGreeting() after text animation
-  if (tgt === 1) { fwOn = true; setAuto(1, 30000); if (musicPlaying && bgm.paused) bgm.play().catch(()=>{}); }
+  if (tgt === 1) { fwOn = true; setAuto(1, 30000); }
   if (tgt === 2) {
     if (!fbs.length) makeFloats();
     faf = requestAnimationFrame(animFloats);
     setAuto(2, 5000); // 5-second auto advance
   }
   if (tgt === 0 || tgt === 1 || tgt === 2) { if (fwIv && tgt !== 1) stopFwSeq(); }
-  if (musicPlaying && bgm.paused) bgm.play().catch(()=>{});
 };
 
 // ============================================================
