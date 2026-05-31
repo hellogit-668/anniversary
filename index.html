@@ -158,7 +158,7 @@ img{display:block;max-width:100%}
 
   <!-- S0: Loading -->
   <section class="section active" id="s0">
-    <div class="loading-heart-area"><svg class="s0-heart" viewBox="0 0 100 100" style="width:clamp(80px,16vw,140px);height:auto"><path d="M50,88 L12,45 A28,28 0 0,1 50,22 A28,28 0 0,1 88,45 Z" fill="#ff4466"/></svg></div>
+    <div class="loading-heart-area"><svg class="s0-heart" viewBox="0 0 100 100" style="width:clamp(80px,16vw,140px);height:auto"><path d="M50,85 C25,60 8,42 20,22 C32,2 50,18 50,38 C50,18 68,2 80,22 C92,42 75,60 50,85 Z" fill="#ff4466"/></svg></div>
     <p class="loading-text">正在加载我们的回忆...</p>
   </section>
 
@@ -391,34 +391,75 @@ const FW_COLORS = [
   '#fdcb6e', '#e84393', '#fd79a8', '#ffeaa7', '#dfe6e9'
 ];
 const FW_HUES = [0, 15, 30, 45, 340, 350, 355];
+const FW_TYPES = ['normal', 'big', 'star', 'star', 'ring', 'big']; // star appears more often
 
-function newFw(x, big) {
+function newFw(x, type) {
   const tx = x || fwCv.width * (0.1 + Math.random() * 0.8);
   const ty = fwCv.height * (0.06 + Math.random() * 0.28);
   const dist = fwCv.height - ty;
-  const riseMs = big ? 3000 : 2500;
-  const frames = riseMs / 16.67;
-  const speed = dist / frames;
+  const t = type || FW_TYPES[Math.floor(Math.random() * FW_TYPES.length)];
+  const riseMs = t === 'star' ? 2000 : (t === 'big' ? 2800 : 2400);
+  const speed = dist / (riseMs / 16.67);
   const hue = FW_HUES[Math.floor(Math.random() * FW_HUES.length)];
-  return { x: tx, y: fwCv.height, ty, speed, gone: false, color: `hsl(${hue},95%,${55 + Math.random() * 30}%)`, big: !!big, trail: [] };
+  return { x: tx, y: fwCv.height, ty, speed, gone: false, color: , type: t, trail: [] };
 }
+
 function boom(f) {
-  const n = f.big ? 250 : (100 + Math.floor(Math.random() * 100));
-  for (let i = 0; i < n; i++) {
-    const a = Math.random() * Math.PI * 2;
-    const sp = f.big ? (2 + Math.random() * 7.5) : (1 + Math.random() * 5);
-    const decay = f.big ? (0.008 + Math.random() * 0.006) : (0.012 + Math.random() * 0.008);
+  let count, spread, decay, size, grav;
+  switch (f.type) {
+    case 'star': // 满天星：超多小粒子，缓慢飘落，广散布
+      count = 350 + Math.floor(Math.random() * 150);
+      spread = 3 + Math.random() * 6;
+      decay = 0.004 + Math.random() * 0.005; // 长寿命
+      size = 0.6 + Math.random() * 1.2;
+      grav = 0.005; // 极慢下落
+      break;
+    case 'big':
+      count = 200 + Math.floor(Math.random() * 80);
+      spread = 2 + Math.random() * 7;
+      decay = 0.008 + Math.random() * 0.006;
+      size = 2 + Math.random() * 3.5;
+      grav = 0.03;
+      break;
+    case 'ring': // 环形爆炸
+      count = 80 + Math.floor(Math.random() * 40);
+      spread = 3 + Math.random() * 3;
+      decay = 0.01 + Math.random() * 0.006;
+      size = 1.5 + Math.random() * 2.5;
+      grav = 0.02;
+      break;
+    default: // normal
+      count = 80 + Math.floor(Math.random() * 100);
+      spread = 1 + Math.random() * 5;
+      decay = 0.012 + Math.random() * 0.008;
+      size = 1.2 + Math.random() * 2.5;
+      grav = 0.03;
+  }
+  
+  for (let i = 0; i < count; i++) {
+    let a, sp;
+    if (f.type === 'ring') {
+      // Ring: particles on a circle
+      a = Math.random() * Math.PI * 2;
+      sp = spread * (0.85 + Math.random() * 0.3);
+    } else {
+      a = Math.random() * Math.PI * 2;
+      sp = spread * (0.3 + Math.random());
+    }
     fwParts.push({
       x: f.x, y: f.y,
       vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
       life: 1, decay,
-      color: f.big ? FW_COLORS[Math.floor(Math.random() * FW_COLORS.length)] : f.color,
-      r: f.big ? (2 + Math.random() * 3.5) : (1.2 + Math.random() * 2.5),
-      big: f.big
+      color: f.type === 'star' ? FW_COLORS[Math.floor(Math.random() * FW_COLORS.length)] : f.color,
+      r: f.type === 'star' ? size : (f.type === 'big' ? size : (1.2 + Math.random() * 2.5)),
+      big: f.type === 'big',
+      grav: grav,
+      twinkle: f.type === 'star' // 满天星闪烁
     });
   }
-  // second ring
-  if (f.big) {
+  
+  // Big fireworks get a white spark ring
+  if (f.type === 'big') {
     for (let i = 0; i < 60; i++) {
       const a = Math.random() * Math.PI * 2;
       const sp = 0.5 + Math.random() * 1.5;
@@ -426,22 +467,38 @@ function boom(f) {
         x: f.x, y: f.y,
         vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
         life: 1, decay: 0.018 + Math.random() * 0.006,
-        color: '#fffbe6', r: 0.8 + Math.random() * 1.5, big: false
+        color: '#fffbe6', r: 0.8 + Math.random() * 1.5, big: false, grav: 0.03, twinkle: false
+      });
+    }
+  }
+  
+  // 满天星第二波：中心涌出金色微粒
+  if (f.type === 'star') {
+    for (let i = 0; i < 80; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = 1 + Math.random() * 2.5;
+      fwParts.push({
+        x: f.x, y: f.y,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+        life: 1, decay: 0.006 + Math.random() * 0.004,
+        color: '#fffbe6', r: 0.4 + Math.random() * 0.8, big: false, grav: 0.008, twinkle: true
       });
     }
   }
 }
+
 function drawFw() {
   fwCtx.clearRect(0, 0, fwCv.width, fwCv.height);
+  const t = performance.now() * 0.001;
   for (let i = fw.length - 1; i >= 0; i--) {
     const f = fw[i];
     if (!f.gone) {
       f.y -= f.speed;
       f.trail.push({ x: f.x, y: f.y, life: 0.6 });
       if (f.trail.length > 6) f.trail.shift();
-      for (const t of f.trail) {
-        t.life -= 0.12;
-        if (t.life > 0) { fwCtx.beginPath(); fwCtx.arc(t.x, t.y, 1.8, 0, Math.PI * 2); fwCtx.fillStyle = f.color.replace('%)', `,${t.life * 0.4})`).replace('hsl', 'hsla'); fwCtx.fill(); }
+      for (const tr of f.trail) {
+        tr.life -= 0.12;
+        if (tr.life > 0) { fwCtx.beginPath(); fwCtx.arc(tr.x, tr.y, 1.8, 0, Math.PI * 2); fwCtx.fillStyle = f.color.replace('%)', ).replace('hsl', 'hsla'); fwCtx.fill(); }
       }
       if (f.y <= f.ty) { f.gone = true; boom(f); fw.splice(i, 1); continue; }
       fwCtx.beginPath(); fwCtx.arc(f.x, f.y, 2.8, 0, Math.PI * 2); fwCtx.fillStyle = f.color; fwCtx.fill();
@@ -452,33 +509,35 @@ function drawFw() {
     }
   }
   for (let i = fwParts.length - 1; i >= 0; i--) {
-    const p = fwParts[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.03; p.life -= p.decay;
+    const p = fwParts[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vy += p.grav || 0.03;
+    p.life -= p.decay;
     if (p.life <= 0) { fwParts.splice(i, 1); continue; }
-    const alpha = p.life * 0.9;
+    let alpha = p.life * 0.9;
+    // Twinkle for star particles
+    if (p.twinkle) alpha *= 0.6 + 0.4 * Math.abs(Math.sin(t * 12 + i * 0.7));
     fwCtx.beginPath();
-    fwCtx.arc(p.x, p.y, p.r * (0.6 + p.life * 0.4), 0, Math.PI * 2);
-    // hex vs hsl
+    fwCtx.arc(p.x, p.y, p.r * (0.5 + p.life * 0.5), 0, Math.PI * 2);
     let fillColor;
     if (p.color.startsWith('#')) {
-      const r = parseInt(p.color.slice(1,3), 16);
-      const g = parseInt(p.color.slice(3,5), 16);
-      const b = parseInt(p.color.slice(5,7), 16);
-      fillColor = `rgba(${r},${g},${b},${alpha})`;
+      const rc = parseInt(p.color.slice(1,3), 16);
+      const gc = parseInt(p.color.slice(3,5), 16);
+      const bc = parseInt(p.color.slice(5,7), 16);
+      fillColor = ;
     } else {
-      fillColor = p.color.replace('%)', `,${alpha})`).replace('hsl', 'hsla');
+      fillColor = p.color.replace('%)', ).replace('hsl', 'hsla');
     }
     fwCtx.fillStyle = fillColor;
     fwCtx.fill();
-    if (p.life > 0.5) {
-      fwCtx.shadowColor = fillColor.replace(`${alpha})`, `${alpha * 0.4})`).replace(/,[^,]*\)$/, `,${alpha * 0.4})`);
-      fwCtx.shadowBlur = p.big ? 6 : 3;
+    if (p.life > 0.5 && p.r > 1) {
+      fwCtx.shadowColor = fillColor.replace(, ).replace(/,[^,]*\)$/, );
+      fwCtx.shadowBlur = p.big ? 6 : (p.twinkle ? 4 : 2);
       fwCtx.fill();
       fwCtx.shadowBlur = 0;
     }
   }
-}
-
-// === S2 PHOTO FLOAT ===
+}// === S2 PHOTO FLOAT ===
 let fbs = [], faf = null;
 function makeFloats() {
   floatBox.innerHTML = ''; fbs = [];
@@ -773,12 +832,13 @@ $('s0').addEventListener('click', () => {
   nxt();
 });
 
-// S1: click/touch for fireworks (center area → big firework)
+// S1: click/touch for fireworks (center → 满天星, edge → varied)
 $('s1').addEventListener('click', e => {
   if (cur === 1 && fwOn) {
     const x = e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX) || fwCv.width / 2;
     const nearCenter = Math.abs(x - fwCv.width / 2) < fwCv.width * 0.2;
-    fw.push(newFw(x, nearCenter));
+    const type = nearCenter ? (Math.random() < 0.5 ? 'star' : 'big') : (Math.random() < 0.5 ? 'normal' : 'ring');
+    fw.push(newFw(x, type));
   }
 });
 
@@ -836,10 +896,14 @@ function startFwSeq() {
   fwIv = setInterval(() => {
     if (!fwOn || cur !== 1) { clearInterval(fwIv); fwIv = null; return; }
     fwCount++;
-    // Big center firework every 4 shots
-    const big = fwCount % 4 === 0;
-    const x = big ? fwCv.width / 2 + (Math.random() - 0.5) * 60 : Math.random() * fwCv.width;
-    fw.push(newFw(x, big));
+    // Varied firework types: star shower, big, ring, normal
+    let type;
+    if (fwCount % 6 === 0) type = 'star';      // 满天星 every 6th
+    else if (fwCount % 4 === 0) type = 'big';  // 大型 every 4th
+    else if (fwCount % 7 === 0) type = 'ring'; // 环形 every 7th
+    else type = 'normal';
+    const x = (type === 'big' || type === 'star') ? fwCv.width / 2 + (Math.random() - 0.5) * 80 : Math.random() * fwCv.width;
+    fw.push(newFw(x, type));
   }, 900);
 }
 function stopFwSeq() { if (fwIv) { clearInterval(fwIv); fwIv = null; } }
