@@ -219,9 +219,7 @@ img{display:block;max-width:100%}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
-// ============================================================
-// DATA
-// ============================================================
+// === DATA ===
 const IMG_BASE = '图片们/';
 const IMG_F = IMG_BASE + 'full/';
 const IMG_T = IMG_BASE + 'thumb/';
@@ -254,9 +252,7 @@ const PAGE_POS = {};
 PAGE_ORDER.forEach((id, pos) => { PAGE_POS[id] = pos; });
 const TOTAL_PAGES = PAGE_ORDER.length;
 
-// ============================================================
-// DOM
-// ============================================================
+// === DOM ===
 const $ = id => document.getElementById(id);
 const hCv = $('heartCanvas'), hCtx = hCv.getContext('2d');
 const fwCv = $('fireworkCanvas'), fwCtx = fwCv.getContext('2d');
@@ -265,16 +261,14 @@ const modal = $('download-modal'), toast = $('toast');
 const floatBox = $('float-container');
 const musicBtn = $('music-toggle');
 
-// Canvas resize
+// resize canvases
 function rs() {
   const w = innerWidth, h = innerHeight;
   [hCv, fwCv].forEach(c => { c.width = w; c.height = h; });
 }
 addEventListener('resize', rs); rs();
 
-// ============================================================
-// HEART UTIL
-// ============================================================
+// === HEART UTIL ===
 function drawHeartShape(ctx, x, y, s) {
   ctx.beginPath();
   ctx.moveTo(x, y - s * 0.35);
@@ -282,9 +276,7 @@ function drawHeartShape(ctx, x, y, s) {
   ctx.bezierCurveTo(x + s * 0.5, y + s * 0.15, x + s * 0.5, y - s * 0.65, x, y - s * 0.35);
 }
 
-// ============================================================
-// S0: BOUNCING HEART
-// ============================================================
+// === S0 HEART ===
 let s0HeartBeat = 0;
 function drawS0Heart() {
   hCtx.clearRect(0, 0, hCv.width, hCv.height);
@@ -313,9 +305,7 @@ function drawS0Heart() {
   hCtx.shadowBlur = 0;
 }
 
-// ============================================================
-// FLOATING HEARTS (15-25 for pages, ~12 for ending)
-// ============================================================
+// === FLOATING HEARTS ===
 let hearts = [];
 function initHearts() {
   hearts = [];
@@ -358,9 +348,7 @@ function drawHearts() {
 }
 initHearts();
 
-// ============================================================
-// FIREWORKS
-// ============================================================
+// === FIREWORKS ===
 let fw = [], fwParts = [], fwOn = false;
 const FW_COLORS = [
   '#ff6b6b', '#ffd93d', '#ff8a80', '#ffd89b', '#ff9a9e',
@@ -395,7 +383,7 @@ function boom(f) {
       big: f.big
     });
   }
-  // Second ring for big fireworks
+  // second ring
   if (f.big) {
     for (let i = 0; i < 60; i++) {
       const a = Math.random() * Math.PI * 2;
@@ -435,7 +423,7 @@ function drawFw() {
     const alpha = p.life * 0.9;
     fwCtx.beginPath();
     fwCtx.arc(p.x, p.y, p.r * (0.6 + p.life * 0.4), 0, Math.PI * 2);
-    // Handle hex colors vs hsl
+    // hex vs hsl
     let fillColor;
     if (p.color.startsWith('#')) {
       const r = parseInt(p.color.slice(1,3), 16);
@@ -456,9 +444,7 @@ function drawFw() {
   }
 }
 
-// ============================================================
-// PHOTO FLOAT — grid-based, thumbnails, no overlap
-// ============================================================
+// === S2 PHOTO FLOAT ===
 let fbs = [], faf = null;
 function makeFloats() {
   floatBox.innerHTML = ''; fbs = [];
@@ -513,12 +499,10 @@ function animFloats() {
   faf = requestAnimationFrame(animFloats);
 }
 
-// ============================================================
-// MEMORY SECTIONS — 3 reusable patterns: standard, envelope, film
-// ============================================================
+// === STORY SECTIONS (standard/envelope/film) ===
 const storyStates = {};
 
-// Shared: reveal helper — blocks global advance for this click
+// reveal helper (blocks same-click advance)
 function doReveal(idx, stage, photo, text, hint) {
   if (storyStates[idx]) return;
   storyStates[idx] = true;
@@ -529,7 +513,7 @@ function doReveal(idx, stage, photo, text, hint) {
   if (hint) { hint.style.animation = 'none'; hint.style.opacity = '0'; }
 }
 
-// Shared: reset story state when re-entering section
+// reset story on re-enter
 function resetStory(idx, stage) {
   storyStates[idx] = false;
   stage.classList.remove('revealed');
@@ -541,7 +525,7 @@ function resetStory(idx, stage) {
   if (hint) { hint.style.animation = 'pulse 2.2s ease-in-out infinite'; hint.style.opacity = '1'; }
 }
 
-// === Pattern 1: Standard click-to-reveal (layouts a,b,c,d) ===
+// Pattern 1: Standard (layouts a,b,c,d)
 function setupStandard(idx, sec, stage) {
   const photo = stage.querySelector('.story-photo, .polaroid-wrap');
   const text = stage.querySelector('.story-text');
@@ -556,7 +540,7 @@ function setupStandard(idx, sec, stage) {
   return { reset() { resetStory(idx, stage); } };
 }
 
-// === Pattern 2: Envelope (layout e) ===
+// Pattern 2: Envelope (layout e)
 function setupEnvelope(idx, sec, stage) {
   const env = sec.querySelector('.envelope');
   const envText = stage.querySelector('.story-text');
@@ -580,7 +564,7 @@ function setupEnvelope(idx, sec, stage) {
   };
 }
 
-// === Pattern 3: Film subtitle (layout f) ===
+// Pattern 3: Film (layout f)
 function setupFilm(idx, sec, stage) {
   const filmTxt = stage.querySelector('.film-text');
   sec._showFilmText = () => {
@@ -597,7 +581,7 @@ function setupFilm(idx, sec, stage) {
   };
 }
 
-// Pattern registry (keyed by section index)
+// pattern registry
 const storyPatterns = {};
 
 function makeMemSection(idx, ph) {
@@ -611,7 +595,7 @@ function makeMemSection(idx, ph) {
   const dataSrc = fullSrc;
   const T = ph.text || nm;
 
-  // HTML templates by layout
+  // layout HTML templates
   const html = {
     a: `<div class="story-stage"><img class="story-photo" data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt="${nm}"><time class="story-date">${dt}</time><p class="story-text">${T}</p><p class="story-hint">轻触照片 · 展开回忆</p></div>`,
     b: `<div class="story-stage"><div class="polaroid-wrap"><img data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt="${nm}" style="width:clamp(200px,50vw,340px);object-fit:cover;aspect-ratio:4/3"><p class="caption">${dt}</p></div><p class="story-text">${T}</p><p class="story-hint">轻触照片 · 展开回忆</p></div>`,
@@ -626,7 +610,7 @@ function makeMemSection(idx, ph) {
 
   const stage = sec.querySelector('.story-stage');
 
-  // Wire up the right pattern
+  // wire pattern
   if (ph.layout === 'e') {
     storyPatterns[idx] = setupEnvelope(idx, sec, stage);
   } else if (ph.layout === 'f') {
@@ -638,9 +622,7 @@ function makeMemSection(idx, ph) {
   return sec;
 }
 
-// ============================================================
-// LAZY LOAD: load images for a section when it becomes active
-// ============================================================
+// === LAZY LOAD ===
 function loadSectionImages(idx) {
   const sec = secEl(idx);
   if (!sec) return;
@@ -657,7 +639,7 @@ function loadSectionImages(idx) {
   });
 }
 
-// Preload next section
+// preload next
 function preloadNext(idx) {
   if (idx >= TOTAL_PAGES) return;
   setTimeout(() => loadSectionImages(idx), 100);
@@ -665,9 +647,7 @@ function preloadNext(idx) {
 
 PHOTOS.forEach((ph, i) => makeMemSection(MEM_START + i, ph));
 
-// ============================================================
-// NAVIGATION
-// ============================================================
+// === NAVIGATION ===
 function secEl(i) {
   if (i === 0) return $('s0');
   if (i === 1) return $('s1');
@@ -684,12 +664,12 @@ function go(tgt) {
   if (old) { old.classList.add('exiting'); old.classList.remove('active'); setTimeout(() => old.classList.remove('exiting'), 500); }
   if (neu) {
     neu.classList.add('active');
-    // Lazy load current + next
+    // lazy load + preload
     loadSectionImages(tgt);
     preloadNext(tgt + 1);
-    // Layout F text animation
+    // film text
     if (neu._showFilmText) neu._showFilmText();
-    // Reset story state via pattern
+    // reset story pattern
     if (tgt >= MEM_START && tgt < END_IDX) {
       const pattern = storyPatterns[tgt];
       if (pattern && pattern.reset) pattern.reset();
@@ -712,7 +692,7 @@ function updNav() {
 function updSec() {
   const wasOn = fwOn;
   fwOn = (cur === 1);
-  // Clear fireworks when leaving S1
+  // clear fw on leave
   if (wasOn && !fwOn) {
     fw = []; fwParts = [];
     fwCtx.clearRect(0, 0, fwCv.width, fwCv.height);
@@ -725,41 +705,29 @@ function updSec() {
   }
 }
 
-// Button events
+// buttons
 btnN.addEventListener('click', nxt);
 btnP.addEventListener('click', prv);
 
-// Universal click-to-advance (delegated from app)
+// global click-to-advance
 $('app').addEventListener('click', (e) => {
   if (busy) return;
   if (e.target.closest('#nav-buttons') || e.target.closest('#download-btn') ||
       e.target.closest('#music-toggle') || e.target.closest('#download-modal')) return;
-  // S1: clicking triggers fireworks AND advances
-  // (firework handler on S1 fires alongside)
-  // S2: photo float page — does NOT advance on click
+  // S1 fireworks + advance
+  
+  // S2: no advance
   if (cur === 2) return;
-  // Story pages: block advance if not yet revealed; allow after reveal
+  // story: block if not revealed
   if (cur >= MEM_START && cur < END_IDX) {
     if (!storyStates[cur]) return;
   }
   if (cur < TOTAL_PAGES - 1) nxt();
 });
 
-let s0Ready = false;
-
-// S0: must wait 3s before clicking to enter
-setTimeout(() => { s0Ready = true; }, 3000);
-
 $('s0').addEventListener('click', () => {
   if (cur !== 0) return;
-  if (!s0Ready) return;
-  if (!musicPlaying) {
-    musicPlaying = true;
-    bgm.play().then(() => {
-      bgm.playbackRate = 0.5;
-      musicBtn.classList.add('playing'); musicBtn.textContent = '♫';
-    }).catch(() => { musicPlaying = false; });
-  }
+  if (!musicPlaying) startMusic();
   nxt();
 });
 
@@ -772,18 +740,14 @@ $('s1').addEventListener('click', e => {
   }
 });
 
-// ============================================================
-// AUTO ADVANCE
-// ============================================================
+// === AUTO ADVANCE ===
 let autoTm = null;
 function setAuto(idx, ms) {
   if (autoTm) clearTimeout(autoTm);
   autoTm = setTimeout(() => { if (cur === idx && !busy) nxt(); }, ms);
 }
 
-// ============================================================
-// INPUT: Keyboard / Wheel / Touch swipe
-// ============================================================
+// === INPUT ===
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nxt();
   if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prv();
@@ -802,11 +766,9 @@ document.addEventListener('wheel', e => {
   else if (e.deltaY < -15) prv();
 }, { passive: true });
 
-// ============================================================
-// GSAP: Section enter animations
-// ============================================================
+// === GSAP ANIMATIONS ===
 function animGreeting() {
-  // Reset to invisible
+  // reset greeting
   const l1 = $('s1').querySelector('.line1');
   const l2 = $('s1').querySelector('.line2');
   l1.style.opacity = '0'; l2.style.opacity = '0';
@@ -847,9 +809,7 @@ const obsCB = (mutations) => {
   if (el) new MutationObserver(obsCB).observe(el, { attributes: true, attributeFilter: ['class'] });
 });
 
-// ============================================================
-// FIREWORKS AUTO-SEQUENCE
-// ============================================================
+// === FIREWORKS SEQUENCE ===
 let fwIv = null;
 let fwCount = 0;
 function startFwSeq() {
@@ -865,9 +825,7 @@ function startFwSeq() {
 }
 function stopFwSeq() { if (fwIv) { clearInterval(fwIv); fwIv = null; } }
 
-// ============================================================
-// DOWNLOAD
-// ============================================================
+// === DOWNLOAD ===
 btnD.addEventListener('click', () => modal.classList.add('show'));
 $('dl-close').addEventListener('click', () => modal.classList.remove('show'));
 modal.querySelector('.overlay').addEventListener('click', () => modal.classList.remove('show'));
@@ -1008,9 +966,7 @@ async function dlAll() {
   showToast(`已下载 ${loaded} 张照片`);
 }
 
-// ============================================================
-// MUSIC
-// ============================================================
+// === MUSIC ===
 const bgm = $('bgm');
 let musicPlaying = false;
 
@@ -1023,23 +979,16 @@ function startMusic() {
   }).catch(() => { musicPlaying = false; });
 }
 
-function stopMusic() {
-  bgm.pause();
-  musicPlaying = false;
-  musicBtn.classList.remove('playing'); musicBtn.textContent = '♪';
-}
-
 musicBtn.addEventListener('click', () => {
-  if (musicPlaying) { stopMusic(); } else { startMusic(); }
+  if (musicPlaying) { bgm.pause(); musicPlaying = false; musicBtn.classList.remove('playing'); musicBtn.textContent = '♪'; }
+  else startMusic();
 });
 
-// ============================================================
-// OVERRIDE go() FOR SIDE EFFECTS
-// ============================================================
+// === go() OVERRIDE ===
 const _go = go;
 go = function (tgt) {
   _go(tgt);
-  // S1: fireworks started by animGreeting() after text animation
+  // S1 fireworks
   if (tgt === 1) { fwOn = true; setAuto(1, 30000); }
   if (tgt === 2) {
     if (!fbs.length) makeFloats();
@@ -1049,9 +998,7 @@ go = function (tgt) {
   if (tgt === 0 || tgt === 1 || tgt === 2) { if (fwIv && tgt !== 1) stopFwSeq(); }
 };
 
-// ============================================================
-// MAIN LOOP
-// ============================================================
+// === MAIN LOOP ===
 (function loop() {
   if (cur === 0) {
     drawS0Heart();
@@ -1062,9 +1009,7 @@ go = function (tgt) {
   requestAnimationFrame(loop);
 })();
 
-// ============================================================
-// INIT
-// ============================================================
+// === INIT ===
 console.log('%c 我们的回忆 %c已就绪', 'font-size:20px;color:#ffd89b', '');
 console.log(PHOTOS.length + ' 张照片 | 爱心粒子 | 懒加载 | WebP');
 </script>
