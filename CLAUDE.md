@@ -6,10 +6,11 @@
 - 懒加载用 `data-src` + `loadSectionImages()`，fallback 值需在 `removeAttribute` 之前捕获
 
 ## S2 照片浮页
-- 网格分布：`makeFloats()` 用 4×3 网格 + 格内随机抖动
+- 可滚动网格，`#float-container` 为独立滚动容器，标题/提示固定不动
+- 网格列数：PC 4 列（123px）/ 手机 3 列（102px），行数根据 `PHOTOS.length` 动态计算
 - **关键**：`position:absolute` 的 float-photo 必须显式设 `left`/`top`，否则全部堆在容器原点
-- 缩放：手机 102px / PC 123px（后续加图时网格自动适配）
-- **从 S2 点入故事页后返回**：点击浮窗照片会设 `fromS2 = true`，`nxt()` 检测后直接 `go(2)` 回 S2 而非走 `PAGE_ORDER`。加图时无需改动此逻辑
+- `makeFloats()` 设 `floatBox.style.height = totalH` 撑开滚动高度
+- **从 S2 点入故事页后返回**：点击浮窗照片会设 `fromS2 = true`，`nxt()` 检测后直接 `go(2)` 回 S2。加图时无需改动此逻辑
 
 ## 爱心
 - `drawHeartShape()` 使用心形参数方程：`x=16sin³t, y=13cost-5cos2t-2cos3t-cos4t`

@@ -40,10 +40,13 @@ img{display:block;max-width:100%}
 
 /* ===== S2 Photo Float ===== */
 #s2{z-index:18;background:radial-gradient(ellipse at center,#1a1a2e 0%,#000 70%);overflow:hidden}
-#s2 .float-title{position:absolute;top:clamp(18px,5%,36px);left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.45);font-size:clamp(12px,2vw,14px);letter-spacing:3px;z-index:2}
-#s2 .float-hint{position:absolute;bottom:clamp(28px,8%,56px);left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.3);font-size:clamp(11px,1.8vw,13px);letter-spacing:2px;z-index:2}
+#s2 .float-title{position:absolute;top:clamp(18px,5%,36px);left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.45);font-size:clamp(12px,2vw,14px);letter-spacing:3px;z-index:2;pointer-events:none}
+#s2 .float-hint{position:absolute;bottom:clamp(28px,8%,56px);left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.3);font-size:clamp(11px,1.8vw,13px);letter-spacing:2px;z-index:2;pointer-events:none}
 #s2 .float-photo{position:absolute;border-radius:8px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.4);z-index:3;object-fit:cover;border:2px solid transparent;transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.35s ease,border-color 0.35s ease}
 #s2 .float-photo:active{transform:scale(1.12)!important;box-shadow:0 8px 40px rgba(255,255,255,0.35)!important;border-color:rgba(255,255,255,0.8)!important;z-index:99!important}
+#float-container{position:absolute;top:clamp(54px,14%,72px);bottom:clamp(54px,14%,72px);left:0;right:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;z-index:1}
+#float-container::-webkit-scrollbar{width:3px}
+#float-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:3px}
 
 /* ===== Memory Sections — shared ===== */
 .memory-section{z-index:7;background:#000}
@@ -248,7 +251,54 @@ const PHOTOS = [
   { file:'Screenshot_20240328_004105.jpg', layout:'c', text:'屏幕里的对话框，装着我们说不完的话。' },
   { file:'Screenshot_20240420_193926.jpg', layout:'d', text:'每次翻看这些截图，都能想起当时的心跳。' },
   { file:'wx_camera_1711719499928.jpg', layout:'f', text:'和你在一起，连空气都是甜的。' },
-  { file:'wx_camera_1716469613677.jpg', layout:'e', text:'最后想说的话很简单：很高兴遇见你。' }
+  { file:'wx_camera_1716469613677.jpg', layout:'e', text:'最后想说的话很简单：很高兴遇见你。' },
+  // === 新增照片 ===
+  { file:'IMG_20250531_032054.jpg', layout:'a', text:'凌晨的夜色里，有说不完的心事。' },
+  { file:'IMG_20250531_033622.jpg', layout:'b', text:'又聊到了天亮，时间过得好快。' },
+  { file:'IMG_20250612_200002.jpg', layout:'c', text:'夏天的傍晚，晚风很温柔。' },
+  { file:'IMG_20250615_170502.jpg', layout:'d', text:'阳光洒下来，一切都刚刚好。' },
+  { file:'IMG_20250615_194340.jpg', layout:'f', text:'黄昏的颜色和你很配。' },
+  { file:'IMG_20250618_075612.jpg', layout:'a', text:'早起看到的风景，因为有你而特别。' },
+  { file:'IMG_20250622_145836_edit_87410.jpg', layout:'b', text:'午后的时光，安静又美好。' },
+  { file:'IMG_20250622_191245.jpg', layout:'c', text:'一起去过的每个地方都值得纪念。' },
+  { file:'IMG_20250622_191422.jpg', layout:'d', text:'你笑起来的时候，世界都亮了。' },
+  { file:'IMG_20250622_192928.jpg', layout:'e', text:'这些瞬间，都是我们的宝藏。' },
+  { file:'IMG_20250622_194210.jpg', layout:'f', text:'夜幕降临，星光不及你眼中的光。' },
+  { file:'IMG_20250622_194720.jpg', layout:'a', text:'和你看过的每一个夜晚都很美。' },
+  { file:'IMG_20250627_005759.jpg', layout:'b', text:'深夜里的悄悄话，只说给你听。' },
+  { file:'IMG_20250628_153527.jpg', layout:'c', text:'周末的阳光里，有最轻松的笑容。' },
+  { file:'IMG_20250927_171038.jpg', layout:'d', text:'秋天的风开始凉了，心却是暖的。' },
+  { file:'IMG_20250929_210538.jpg', layout:'f', text:'国庆前的夜晚，满是期待。' },
+  { file:'IMG_20251010_222716.jpg', layout:'a', text:'十月的夜晚，星星很多你很甜。' },
+  { file:'IMG_20251010_223306.jpg', layout:'b', text:'每次见面都有说不完的话。' },
+  { file:'IMG_20251018_155257.jpg', layout:'c', text:'一起度过的最普通也最珍贵的一天。' },
+  { file:'IMG_20251018_181046.jpg', layout:'d', text:'日落的余晖里，你的侧脸很好看。' },
+  { file:'IMG_20251025_171244.jpg', layout:'e', text:'秋天的一切都变得温柔了。' },
+  { file:'IMG_20251025_184044.jpg', layout:'f', text:'夜晚的灯光下，你格外好看。' },
+  { file:'IMG_20251026_193639.jpg', layout:'a', text:'和你在一起的每一天都是好天气。' },
+  { file:'IMG_20251115_135230.jpg', layout:'b', text:'周末的午后，时间慢了下来。' },
+  { file:'IMG_20251228_171543.jpg', layout:'c', text:'年末的时光，因为有你格外温暖。' },
+  { file:'IMG_20251228_171654.jpg', layout:'d', text:'这一年快结束了，还好有你在身边。' },
+  { file:'IMG_20251228_175758.jpg', layout:'e', text:'冬天的傍晚，想和你一直这样走下去。' },
+  { file:'IMG_20260130_174222.jpg', layout:'f', text:'一月的尾巴，和你一起迎接春天。' },
+  { file:'IMG_20260313_182526.jpg', layout:'a', text:'春天的夜晚，连风都是暖的。' },
+  { file:'IMG_20260328_121820.jpg', layout:'b', text:'一周年纪念日的阳光，格外灿烂。' },
+  { file:'IMG_20260411_180402.jpg', layout:'c', text:'四月的风里，藏着我们的故事。' },
+  { file:'IMG_20260516_190234.jpg', layout:'d', text:'夏天的傍晚，一起去散步吧。' },
+  { file:'IMG_20260516_192856.jpg', layout:'e', text:'晚风轻拂，你的笑容是最好的风景。' },
+  { file:'Screenshot_20250712_012359.jpg', layout:'f', text:'手机里存着我们的点点滴滴。' },
+  { file:'Screenshot_20260522_184418.jpg', layout:'a', text:'翻看聊天记录，满满的都是你。' },
+  { file:'Screenshot_20260601_221816.jpg', layout:'b', text:'屏幕里的甜言蜜语，不及你在我身边。' },
+  { file:'mmexport1744298275706.jpg', layout:'c', text:'照片定格的瞬间，都是心动的理由。' },
+  { file:'mmexport1744298313255.jpg', layout:'d', text:'这些日常碎片，拼成了我们的故事。' },
+  { file:'mmexport1748705074731.jpg', layout:'e', text:'每一张照片都是一个舍不得忘记的瞬间。' },
+  { file:'mmexport1749334946421.jpg', layout:'f', text:'和你一起走过的路，每一步都算数。' },
+  { file:'mmexport1749334960479.jpg', layout:'a', text:'生活里的光，都是你带来的。' },
+  { file:'mmexport1749720212686.jpg', layout:'b', text:'最简单的日常，因为有你而特别。' },
+  { file:'mmexport1749720253086.jpg', layout:'c', text:'所有的美好都与你有关。' },
+  { file:'mmexport1749720319402.jpg', layout:'d', text:'想把这些瞬间都珍藏起来。' },
+  { file:'mmexport1749720326303.jpg', layout:'e', text:'有你在的每一天都值得纪念。' },
+  { file:'mmexport1779508743084.jpg', layout:'f', text:'故事还在继续，我们的未来还很长。' }
 ];
 const pName = f => f.replace(/\.[^.]+$/, '').replace(/[_-]/g, ' ');
 const pDate = f => { const m = f.match(/(\d{4})(\d{2})(\d{2})/); return m ? `${m[1]}.${m[2]}.${m[3]}` : ''; };
@@ -566,19 +616,18 @@ function drawFw() {
 let fbs = [], faf = null;
 function makeFloats() {
   floatBox.innerHTML = ''; fbs = [];
-  const W = innerWidth, H = innerHeight;
-  const cols = 4, rows = 3, sz = W < 500 ? 102 : 123;
-  const topReserve = 48, botReserve = 50;
-  const usableH = H - topReserve - botReserve;
-  const cellW = W / cols, cellH = usableH / rows;
-  const pad = sz * 0.2;
+  const W = innerWidth;
+  const cols = W < 500 ? 3 : 4, sz = W < 500 ? 102 : 123;
+  const cellW = W / cols, cellH = sz * 1.5, pad = sz * 0.2;
+  const rows = Math.ceil(PHOTOS.length / cols);
+  const totalH = rows * cellH + pad;
 
   PHOTOS.forEach((ph, i) => {
     const col = i % cols, row = Math.floor(i / cols);
     const jx = pad + Math.random() * (cellW - sz - pad * 2);
     const jy = pad + Math.random() * (cellH - sz - pad * 2);
     const bx = col * cellW + jx;
-    const by = topReserve + row * cellH + jy;
+    const by = row * cellH + jy;
 
     const img = document.createElement('img');
     img.dataset.src = IMG_T + toWebp(ph.file);
@@ -602,6 +651,8 @@ function makeFloats() {
     fb.x = fb.bx; fb.y = fb.by; fbs.push(fb);
     img.addEventListener('click', () => { fromS2 = true; go(MEM_START + i); });
   });
+
+  floatBox.style.height = totalH + 'px';
 }
 function animFloats() {
   if (cur !== 2) { faf = null; return; }
@@ -1105,7 +1156,6 @@ go = function (tgt) {
   _go(tgt);
   // S1 fireworks
   if (tgt === 1) { fwOn = true; setAuto(1, 30000); setTimeout(() => { if (cur === 1) startFwSeq(); }, 1500); }
-  if (tgt === 2) { setAuto(2, 5000); }
   if (tgt === 0 || tgt === 1 || tgt === 2) { if (fwIv && tgt !== 1) stopFwSeq(); }
 };
 
