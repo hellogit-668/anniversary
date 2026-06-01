@@ -158,7 +158,7 @@ img{display:block;max-width:100%}
 
   <!-- S0: Loading -->
   <section class="section active" id="s0">
-    <div class="loading-heart-area"><svg class="s0-heart" viewBox="0 0 100 100" style="width:clamp(80px,16vw,140px);height:auto"><path d="M50,88 L12,45 A28,28 0 0,1 50,22 A28,28 0 0,1 88,45 Z" fill="#ff4466"/></svg></div>
+    <div class="loading-heart-area"><svg class="s0-heart" viewBox="0 0 100 100" style="width:clamp(80px,16vw,140px);height:auto"><path d="M50,85 C20,58 0,40 0,24 C0,10 12,2 24,2 C34,2 44,12 50,22 C56,12 66,2 76,2 C88,2 100,10 100,24 C100,40 80,58 50,85Z" fill="#ff4466"/></svg></div>
     <p class="loading-text">正在加载我们的回忆...</p>
   </section>
 
@@ -302,12 +302,20 @@ function rs() {
 }
 addEventListener('resize', rs); rs();
 
-// === HEART UTIL ===
-function drawHeartShape(ctx, x, y, s) {
+// === HEART UTIL (parametric heart: x=16sin³t, y=13cost-5cos2t-2cos3t-cos4t) ===
+function drawHeartShape(ctx, cx, cy, s) {
   ctx.beginPath();
-  ctx.moveTo(x, y - s * 0.35);
-  ctx.bezierCurveTo(x - s * 0.5, y - s * 0.65, x - s * 0.5, y + s * 0.15, x, y + s * 0.45);
-  ctx.bezierCurveTo(x + s * 0.5, y + s * 0.15, x + s * 0.5, y - s * 0.65, x, y - s * 0.35);
+  const scale = s / 16;
+  for (let t = 0; t <= Math.PI * 2; t += 0.04) {
+    const st = Math.sin(t);
+    const x = 16 * st * st * st;
+    const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+    const px = cx + x * scale;
+    const py = cy - y * scale;
+    if (t === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
 }
 
 // === S0 HEART ===
@@ -322,19 +330,36 @@ function drawS0Heart() {
   const size = (hCv.width < 600 ? 70 : 90) * beat;
   const alpha = 0.55 + Math.abs(Math.sin(t * Math.PI / 0.9)) * 0.4;
 
-  const grad = hCtx.createRadialGradient(cx, cy - size * 0.2, size * 0.1, cx, cy, size);
-  grad.addColorStop(0, `rgba(255,180,170,${alpha})`);
-  grad.addColorStop(0.6, `rgba(255,130,130,${alpha * 0.7})`);
-  grad.addColorStop(1, `rgba(255,100,120,0)`);
+  // Outer glow
+  hCtx.shadowColor = `rgba(255,100,120,${alpha * 0.6})`;
+  hCtx.shadowBlur = size * 0.8;
+  drawHeartShape(hCtx, cx, cy, size * 1.06);
+  hCtx.fillStyle = `rgba(255,120,140,${alpha * 0.12})`;
+  hCtx.fill();
+  hCtx.shadowBlur = 0;
 
+  // Main heart
   drawHeartShape(hCtx, cx, cy, size);
+  const grad = hCtx.createLinearGradient(cx, cy - size, cx, cy + size * 0.6);
+  grad.addColorStop(0, `rgba(255,220,210,${alpha})`);
+  grad.addColorStop(0.35, `rgba(255,160,150,${alpha * 0.9})`);
+  grad.addColorStop(0.7, `rgba(255,110,120,${alpha * 0.8})`);
+  grad.addColorStop(1, `rgba(200,80,100,${alpha * 0.5})`);
   hCtx.fillStyle = grad;
   hCtx.fill();
 
-  hCtx.shadowColor = `rgba(255,150,150,${alpha * 0.5})`;
-  hCtx.shadowBlur = size * 0.6;
-  drawHeartShape(hCtx, cx, cy, size * 0.85);
-  hCtx.fillStyle = `rgba(255,200,180,${alpha * 0.3})`;
+  // Highlight on left lobe
+  if (size > 40) {
+    drawHeartShape(hCtx, cx + size * 0.18, cy - size * 0.25, size * 0.22);
+    hCtx.fillStyle = `rgba(255,240,230,${alpha * 0.2})`;
+    hCtx.fill();
+  }
+
+  // Soft inner glow
+  hCtx.shadowColor = `rgba(255,200,180,${alpha * 0.35})`;
+  hCtx.shadowBlur = size * 0.4;
+  drawHeartShape(hCtx, cx, cy, size * 0.88);
+  hCtx.fillStyle = `rgba(255,200,190,${alpha * 0.08})`;
   hCtx.fill();
   hCtx.shadowBlur = 0;
 }
