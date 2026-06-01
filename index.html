@@ -255,7 +255,7 @@ const pDate = f => { const m = f.match(/(\d{4})(\d{2})(\d{2})/); return m ? `${m
 
 const MEM_START = 3;
 const END_IDX = 3 + PHOTOS.length;
-let cur = 0, busy = false;
+let cur = 0, busy = false, fromS2 = false;
 const storyIdxs = [];
 for (let i = MEM_START; i < END_IDX; i++) storyIdxs.push(i);
 const PAGE_ORDER = [0, 1, ...storyIdxs, 2, END_IDX];
@@ -600,7 +600,7 @@ function makeFloats() {
       ph: Math.random() * Math.PI * 2
     };
     fb.x = fb.bx; fb.y = fb.by; fbs.push(fb);
-    img.addEventListener('click', () => go(MEM_START + i));
+    img.addEventListener('click', () => { fromS2 = true; go(MEM_START + i); });
   });
 }
 function animFloats() {
@@ -799,7 +799,15 @@ function go(tgt) {
   setTimeout(() => { busy = false; }, 800);
 }
 
-function nxt() { var p = PAGE_POS[cur]; if (p < TOTAL_PAGES - 1) go(PAGE_ORDER[p + 1]); }
+function nxt() {
+  if (fromS2 && cur >= MEM_START && cur < END_IDX) {
+    fromS2 = false;
+    go(2);
+    return;
+  }
+  var p = PAGE_POS[cur];
+  if (p < TOTAL_PAGES - 1) go(PAGE_ORDER[p + 1]);
+}
 function prv() { var p = PAGE_POS[cur]; if (p > 0) go(PAGE_ORDER[p - 1]); }
 
 function updNav() {
