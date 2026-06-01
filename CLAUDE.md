@@ -9,6 +9,13 @@
 - 网格分布：`makeFloats()` 用 4×3 网格 + 格内随机抖动
 - **关键**：`position:absolute` 的 float-photo 必须显式设 `left`/`top`，否则全部堆在容器原点
 - 缩放：手机 102px / PC 123px（后续加图时网格自动适配）
+- **从 S2 点入故事页后返回**：点击浮窗照片会设 `fromS2 = true`，`nxt()` 检测后直接 `go(2)` 回 S2 而非走 `PAGE_ORDER`。加图时无需改动此逻辑
+
+## 爱心
+- `drawHeartShape()` 使用心形参数方程：`x=16sin³t, y=13cost-5cos2t-2cos3t-cos4t`
+- 缩放参数 `s` 等价于半宽（`scale = s / 16`），`s` 传入实际渲染尺寸即可
+- 影响范围：S0 Canvas 心跳动画、背景浮动爱心、纪念卡片绘制
+- S0 SVG 爱心路径在 HTML 中独立维护（与 Canvas 无关）
 
 ## 音乐
 - `musicPlaying` 标志位须**同步设为 true**（在 `bgm.play()` 之前），否则 recovery 检查失效
