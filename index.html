@@ -910,7 +910,8 @@ $('app').addEventListener('click', (e) => {
 $('s0').addEventListener('click', () => {
   if (cur !== 0) return;
   if (!musicPlaying) startMusic();
-  nxt();
+  if (window._debugGo !== undefined) { go(window._debugGo); window._debugGo = undefined; }
+  else nxt();
 });
 
 // S1: click/touch for fireworks (center → 满天星, edge → varied)
@@ -1169,6 +1170,11 @@ const lbImg=lb.querySelector('img');
 lb.addEventListener('click',e=>{e.stopPropagation();lb.classList.remove('show');});
 
 // === INIT ===
+const debugIdx = parseInt(new URL(location.href).searchParams.get('p'), 10);
+if (!isNaN(debugIdx) && debugIdx >= 0 && debugIdx < PHOTOS.length) {
+  // ?p=12 直接跳到第 n 张照片的故事页（0-indexed，12=新增第一张）
+  window._debugGo = MEM_START + debugIdx;
+}
 console.log('%c 我们的回忆 %c已就绪', 'font-size:20px;color:#ffd89b', '');
 console.log(PHOTOS.length + ' 张照片 | 爱心粒子 | 懒加载 | WebP');
 </script>
