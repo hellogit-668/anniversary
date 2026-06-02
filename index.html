@@ -943,12 +943,17 @@ function setAuto(idx, ms) {
 
 // === INPUT ===
 document.addEventListener('keydown', e => {
+  if (cur === 2) return;
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nxt();
   if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prv();
 });
 let tsY = 0;
-document.addEventListener('touchstart', e => { tsY = e.touches[0].clientY; }, { passive: true });
+document.addEventListener('touchstart', e => {
+  if (cur === 2 && e.target.closest('#float-container')) return;
+  tsY = e.touches[0].clientY;
+}, { passive: true });
 document.addEventListener('touchend', e => {
+  if (cur === 2 && e.target.closest('#float-container')) return;
   const d = tsY - e.changedTouches[0].clientY;
   if (Math.abs(d) > 50) { if (d > 0) nxt(); else prv(); }
 });
