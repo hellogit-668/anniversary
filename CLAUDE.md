@@ -32,21 +32,8 @@
 ## CSS 陷阱
 - CSS `animation` 优先级高于 inline style。要覆盖动画中的属性必须同时设 `animation: none`
 
-## 预加载策略
-- Phase 1：所有缩略图立即加载（S2 浮页无缝展示）
-- Phase 2：前 6 张全尺寸图，300ms 起以 80ms 间隔加载
-- Phase 3：其余全尺寸图，800ms 起每批 6 张、批间隔 400ms、批内 80ms 间隔
-- 加图无需改动 preload，自动遍历所有 PHOTOS
-
 ## 本地预览
 - `npx http-server -p 8765 -c-1` 可正确处理中文路径 URL 编码
 
-## 上传公网（GitHub Pages）
-1. 确保 VPN/代理开启（代理端口 `127.0.0.1:7897`）
-2. 配置代理：`git config http.proxy http://127.0.0.1:7897`
-3. 提交并推送：`git add -A && git commit -m "xxx" && git push origin main`
-4. GitHub Pages 自动部署：https://hellogit-668.github.io/anniversary/
-
 ## 外部 CDN
 - GSAP / JSZip / QRCode 来自 cdnjs，使用前检查 `typeof !== 'undefined'`
-- 图片/音乐通过 jsDelivr 加载（有中国节点）

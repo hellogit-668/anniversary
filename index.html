@@ -315,32 +315,25 @@ const TOTAL_PAGES = PAGE_ORDER.length;
 
 // === PRELOAD IMAGES (starts immediately, while user is on S0/S1) ===
 (function preload() {
-  // Phase 1: all thumbnails — S2 float photos instant
+  // Phase 1: all thumbnails (108KB total) — ensures S2 float photos are instant
   PHOTOS.forEach(ph => {
     const img = new Image();
     img.src = IMG_T + toWebp(ph.file);
   });
-  // Phase 2: first 6 full images (staggered, 80ms apart) — story pages user sees first
-  PHOTOS.slice(0, 6).forEach((ph, i) => {
-    setTimeout(() => {
+  // Phase 2: first 4 full images — the story pages user sees first
+  setTimeout(() => {
+    PHOTOS.slice(0, 4).forEach(ph => {
       const img = new Image();
       img.src = IMG_F + toWebp(ph.file);
-    }, 300 + i * 80);
-  });
-  // Phase 3: remaining full images, in batches of 6, 400ms between batches
-  const rest = PHOTOS.slice(6);
-  let delay = 800;
-  for (let b = 0; b < rest.length; b += 6) {
-    const batch = rest.slice(b, b + 6);
-    const d = delay;
-    batch.forEach((ph, i) => {
-      setTimeout(() => {
-        const img = new Image();
-        img.src = IMG_F + toWebp(ph.file);
-      }, d + i * 80);
     });
-    delay += 400;
-  }
+  }, 500);
+  // Phase 3: remaining full images
+  setTimeout(() => {
+    PHOTOS.slice(4).forEach(ph => {
+      const img = new Image();
+      img.src = IMG_F + toWebp(ph.file);
+    });
+  }, 1500);
 })();
 
 // === DOM ===
