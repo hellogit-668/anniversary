@@ -321,6 +321,18 @@ const TOTAL_PAGES = PAGE_ORDER.length;
   });
 })();
 
+// === PRELOAD FULL IMAGES (serial queue, one at a time, never clogs connections) ===
+(function preloadFull() {
+  let i = 0;
+  function next() {
+    if (i >= PHOTOS.length) return;
+    const img = new Image();
+    img.src = IMG_F + toWebp(PHOTOS[i].file);
+    img.onload = img.onerror = () => { i++; setTimeout(next, 80); };
+  }
+  setTimeout(next, 600);
+})();
+
 // === DOM ===
 const $ = id => document.getElementById(id);
 const hCv = $('heartCanvas'), hCtx = hCv.getContext('2d');
