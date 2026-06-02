@@ -954,6 +954,8 @@ document.addEventListener('touchend', e => {
 });
 let whTm = null;
 document.addEventListener('wheel', e => {
+  // S2 图片集页内滚动不触页面跳转
+  if (cur === 2 && e.target.closest('#float-container')) return;
   if (whTm) return;
   whTm = setTimeout(() => { whTm = null; }, 700);
   if (e.deltaY > 15) nxt();
