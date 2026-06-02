@@ -313,27 +313,12 @@ const PAGE_POS = {};
 PAGE_ORDER.forEach((id, pos) => { PAGE_POS[id] = pos; });
 const TOTAL_PAGES = PAGE_ORDER.length;
 
-// === PRELOAD IMAGES (starts immediately, while user is on S0/S1) ===
-(function preload() {
-  // Phase 1: all thumbnails (108KB total) — ensures S2 float photos are instant
+// === PRELOAD THUMBNAILS (starts immediately, S2 photos show instantly) ===
+(function preloadThumbs() {
   PHOTOS.forEach(ph => {
     const img = new Image();
     img.src = IMG_T + toWebp(ph.file);
   });
-  // Phase 2: first 4 full images — the story pages user sees first
-  setTimeout(() => {
-    PHOTOS.slice(0, 4).forEach(ph => {
-      const img = new Image();
-      img.src = IMG_F + toWebp(ph.file);
-    });
-  }, 500);
-  // Phase 3: remaining full images
-  setTimeout(() => {
-    PHOTOS.slice(4).forEach(ph => {
-      const img = new Image();
-      img.src = IMG_F + toWebp(ph.file);
-    });
-  }, 1500);
 })();
 
 // === DOM ===
