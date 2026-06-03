@@ -949,18 +949,18 @@ document.addEventListener('keydown', e => {
 });
 let tsY = 0;
 document.addEventListener('touchstart', e => {
-  if (cur === 2 && e.target.closest('#float-container')) return;
+  if (cur === 2) return;
   tsY = e.touches[0].clientY;
 }, { passive: true });
 document.addEventListener('touchend', e => {
-  if (cur === 2 && e.target.closest('#float-container')) return;
+  if (cur === 2) return;
   const d = tsY - e.changedTouches[0].clientY;
   if (Math.abs(d) > 50) { if (d > 0) nxt(); else prv(); }
 });
 let whTm = null;
 document.addEventListener('wheel', e => {
-  // S2 图片集页内滚动不触页面跳转
-  if (cur === 2 && e.target.closest('#float-container')) return;
+  // S2 图片集页内不触页面跳转
+  if (cur === 2) return;
   if (whTm) return;
   whTm = setTimeout(() => { whTm = null; }, 700);
   if (e.deltaY > 15) nxt();
