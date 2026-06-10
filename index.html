@@ -107,6 +107,17 @@ img{display:block;max-width:100%}
 .layout-f .film-text{position:relative;z-index:2;color:#fff;text-align:center;max-width:82vw;font-family:"KaiTi","STKaiti","SimSun",serif;font-size:clamp(18px,3.5vw,28px);letter-spacing:6px;line-height:2.2;opacity:0;transition:opacity 2s ease}
 .layout-f .film-text.visible{opacity:0.9}
 
+/* ===== Layout Group: multi-photo side-by-side ===== */
+.layout-group .photo-row{display:flex;gap:10px;justify-content:center;align-items:flex-start;flex-wrap:wrap;transition:all 1.5s cubic-bezier(0.25,0.1,0.25,1)}
+.layout-group .group-photo{border-radius:12px;object-fit:cover;cursor:pointer;width:clamp(130px,38vw,260px);height:clamp(130px,38vw,260px);box-shadow:0 8px 32px rgba(0,0,0,0.45);transition:all 1.5s cubic-bezier(0.25,0.1,0.25,1)}
+.layout-group .group-photo:active{transform:scale(0.95)}
+/* Revealed: shrink photo-row to corner (mirrors .story-photo.revealed) */
+.layout-group .photo-row.revealed{position:fixed!important;top:clamp(14px,3.5vw,28px)!important;left:clamp(14px,3.5vw,28px)!important;z-index:50!important;gap:5px!important}
+.layout-group .photo-row.revealed .group-photo{width:clamp(38px,7vw,60px)!important;height:clamp(38px,7vw,60px)!important;border-radius:6px!important;box-shadow:0 4px 20px rgba(0,0,0,0.5)!important}
+@media(max-width:500px){
+  .layout-group .group-photo{width:calc(50vw - 18px);height:calc(50vw - 18px)}
+}
+
 /* ===== Story responsive: PC side-by-side ===== */
 @media(min-width:768px){
   .story-stage{flex-direction:row!important;gap:clamp(36px,6vw,64px);padding:clamp(24px,5vw,48px)}
@@ -204,6 +215,13 @@ img{display:block;max-width:100%}
     <button class="nav-btn hidden" id="btn-next" aria-label="下一页">▸</button>
     <button class="debug-btn" id="btn-debug" aria-label="调试">⚡</button>
   </div>
+  <!-- Debug: page jump -->
+  <div id="debug-jump" style="position:fixed;bottom:clamp(120px,22vw,170px);right:clamp(16px,4vw,32px);z-index:100;display:flex;gap:4px;align-items:center">
+    <input id="jump-input" type="number" min="0" placeholder="页码" style="width:44px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-size:12px;text-align:center;outline:none">
+    <button id="jump-btn" style="width:30px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-size:12px;cursor:pointer">GO</button>
+  </div>
+  <!-- Debug: page label -->
+  <div id="debug-label" style="position:fixed;top:clamp(12px,3vw,24px);left:clamp(12px,3vw,24px);z-index:102;color:rgba(255,255,255,0.35);font-size:12px;letter-spacing:1px;pointer-events:none">S0</div>
   <button id="download-btn" class="hidden" aria-label="下载">↓</button>
   <button id="music-toggle" aria-label="音乐">♪</button>
 
@@ -226,7 +244,7 @@ img{display:block;max-width:100%}
   <canvas id="card-canvas" width="800" height="1200"></canvas>
 
   <!-- Background music -->
-  <audio id="bgm" loop preload="none" src="https://cdn.jsdelivr.net/gh/hellogit-668/anniversary@main/多幸运.mp3"></audio>
+  <audio id="bgm" preload="none" src="https://cdn.jsdelivr.net/gh/hellogit-668/anniversary@main/我们俩.mp3"></audio>
   <!-- Lightbox -->
   <div id="lightbox"><img src="" alt=""></div>
 </div>
@@ -244,71 +262,141 @@ const IMG_T = IMG_BASE + 'thumb/';
 const toWebp = f => f.replace(/\.[^.]+$/, '.webp');
 
 const PHOTOS = [
-  { file:'IMG_20240328_155341.jpg', layout:'a', text:'那天阳光正好，我们第一次一起出门。' },
-  { file:'IMG_20240328_172546.jpg', layout:'b', text:'你认真的样子，总是让我忍不住偷看。' },
-  { file:'IMG_20240328_172704.jpg', layout:'c', text:'黄昏的光落在你身上，一切都变得温柔。' },
-  { file:'IMG_20240423_155504.jpg', layout:'d', text:'四月春风里，你的笑容是最好看的风景。' },
-  { file:'IMG_20240425_184225.jpg', layout:'e', text:'这是写给未来的一封信，收件人是我们。' },
-  { file:'IMG_20240504_190306.jpg', layout:'f', text:'那一天，时间仿佛停住了。世界安静得只剩下你和我。' },
-  { file:'IMG_20240604_220505.jpg', layout:'a', text:'深夜的街灯下，我们走了很远很远的路。' },
-  { file:'IMG_20240605_214559.jpg', layout:'b', text:'这些平凡的日子，因为有你都变成了好日子。' },
-  { file:'Screenshot_20240328_004105.jpg', layout:'c', text:'屏幕里的对话框，装着我们说不完的话。' },
-  { file:'Screenshot_20240420_193926.jpg', layout:'d', text:'每次翻看这些截图，都能想起当时的心跳。' },
-  { file:'wx_camera_1711719499928.jpg', layout:'f', text:'和你在一起，连空气都是甜的。' },
-  { file:'wx_camera_1716469613677.jpg', layout:'e', text:'最后想说的话很简单：很高兴遇见你。' },
-  // === 新增照片 ===
-  { file:'IMG_20250531_032054.jpg', layout:'a', text:'凌晨的夜色里，有说不完的心事。' },
-  { file:'IMG_20250531_033622.jpg', layout:'b', text:'又聊到了天亮，时间过得好快。' },
-  { file:'IMG_20250612_200002.jpg', layout:'c', text:'夏天的傍晚，晚风很温柔。' },
-  { file:'IMG_20250615_170502.jpg', layout:'d', text:'阳光洒下来，一切都刚刚好。' },
-  { file:'IMG_20250615_194340.jpg', layout:'f', text:'黄昏的颜色和你很配。' },
-  { file:'IMG_20250618_075612.jpg', layout:'a', text:'早起看到的风景，因为有你而特别。' },
-  { file:'IMG_20250622_145836_edit_87410.jpg', layout:'b', text:'午后的时光，安静又美好。' },
-  { file:'IMG_20250622_191245.jpg', layout:'c', text:'一起去过的每个地方都值得纪念。' },
-  { file:'IMG_20250622_191422.jpg', layout:'d', text:'你笑起来的时候，世界都亮了。' },
-  { file:'IMG_20250622_192928.jpg', layout:'e', text:'这些瞬间，都是我们的宝藏。' },
-  { file:'IMG_20250622_194210.jpg', layout:'f', text:'夜幕降临，星光不及你眼中的光。' },
-  { file:'IMG_20250622_194720.jpg', layout:'a', text:'和你看过的每一个夜晚都很美。' },
-  { file:'IMG_20250627_005759.jpg', layout:'b', text:'深夜里的悄悄话，只说给你听。' },
-  { file:'IMG_20250628_153527.jpg', layout:'c', text:'周末的阳光里，有最轻松的笑容。' },
-  { file:'IMG_20250927_171038.jpg', layout:'d', text:'秋天的风开始凉了，心却是暖的。' },
-  { file:'IMG_20250929_210538.jpg', layout:'f', text:'国庆前的夜晚，满是期待。' },
-  { file:'IMG_20251010_222716.jpg', layout:'a', text:'十月的夜晚，星星很多你很甜。' },
-  { file:'IMG_20251010_223306.jpg', layout:'b', text:'每次见面都有说不完的话。' },
-  { file:'IMG_20251018_155257.jpg', layout:'c', text:'一起度过的最普通也最珍贵的一天。' },
-  { file:'IMG_20251018_181046.jpg', layout:'d', text:'日落的余晖里，你的侧脸很好看。' },
-  { file:'IMG_20251025_171244.jpg', layout:'e', text:'秋天的一切都变得温柔了。' },
-  { file:'IMG_20251025_184044.jpg', layout:'f', text:'夜晚的灯光下，你格外好看。' },
-  { file:'IMG_20251026_193639.jpg', layout:'a', text:'和你在一起的每一天都是好天气。' },
-  { file:'IMG_20251115_135230.jpg', layout:'b', text:'周末的午后，时间慢了下来。' },
-  { file:'IMG_20251228_171543.jpg', layout:'c', text:'年末的时光，因为有你格外温暖。' },
-  { file:'IMG_20251228_171654.jpg', layout:'d', text:'这一年快结束了，还好有你在身边。' },
-  { file:'IMG_20251228_175758.jpg', layout:'e', text:'冬天的傍晚，想和你一直这样走下去。' },
-  { file:'IMG_20260130_174222.jpg', layout:'f', text:'一月的尾巴，和你一起迎接春天。' },
-  { file:'IMG_20260313_182526.jpg', layout:'a', text:'春天的夜晚，连风都是暖的。' },
-  { file:'IMG_20260328_121820.jpg', layout:'b', text:'一周年纪念日的阳光，格外灿烂。' },
-  { file:'IMG_20260411_180402.jpg', layout:'c', text:'四月的风里，藏着我们的故事。' },
-  { file:'IMG_20260516_190234.jpg', layout:'d', text:'夏天的傍晚，一起去散步吧。' },
-  { file:'IMG_20260516_192856.jpg', layout:'e', text:'晚风轻拂，你的笑容是最好的风景。' },
-  { file:'Screenshot_20250712_012359.jpg', layout:'f', text:'手机里存着我们的点点滴滴。' },
-  { file:'Screenshot_20260522_184418.jpg', layout:'a', text:'翻看聊天记录，满满的都是你。' },
-  { file:'Screenshot_20260601_221816.jpg', layout:'b', text:'屏幕里的甜言蜜语，不及你在我身边。' },
-  { file:'mmexport1744298275706.jpg', layout:'c', text:'照片定格的瞬间，都是心动的理由。' },
-  { file:'mmexport1744298313255.jpg', layout:'d', text:'这些日常碎片，拼成了我们的故事。' },
-  { file:'mmexport1748705074731.jpg', layout:'e', text:'每一张照片都是一个舍不得忘记的瞬间。' },
-  { file:'mmexport1749334946421.jpg', layout:'f', text:'和你一起走过的路，每一步都算数。' },
-  { file:'mmexport1749334960479.jpg', layout:'a', text:'生活里的光，都是你带来的。' },
-  { file:'mmexport1749720212686.jpg', layout:'b', text:'最简单的日常，因为有你而特别。' },
-  { file:'mmexport1749720253086.jpg', layout:'c', text:'所有的美好都与你有关。' },
-  { file:'mmexport1749720319402.jpg', layout:'d', text:'想把这些瞬间都珍藏起来。' },
-  { file:'mmexport1749720326303.jpg', layout:'e', text:'有你在的每一天都值得纪念。' },
-  { file:'mmexport1779508743084.jpg', layout:'f', text:'故事还在继续，我们的未来还很长。' }
+  // 1
+  { file:'Screenshot_20240328_004105.jpg', layout:'a', text:'24.3.28 故事的开始\n收到消息的时候心跳都在加速，其实我当时不舍得休息的哈哈哈哈' },
+  // 2
+  { file:'mmexport1781013756797.jpg', layout:'b', text:'你在左边，我紧靠右~' },
+  // 3: 玉兰花+郁金香 paired
+  { file:'IMG_20240328_172546.jpg', layout:'c', text:'去百花公园看到了你想看的玉兰花~\n在泉城公园piu亮的郁金香' },
+  { file:'IMG_20240328_155341.jpg', layout:'c', text:'去百花公园看到了你想看的玉兰花~\n在泉城公园piu亮的郁金香' },
+  // 5
+  { file:'IMG_20240328_172704.jpg', layout:'d', text:'这是我们第一张合照哦，哥轻易不拍照，留合照还不是有点喜欢你嘛…' },
+  // 6
+  { file:'wx_camera_1711719499928.jpg', layout:'e', text:'我们一起在操场听歌的日子，那种感觉，比暧昧还暧昧一万倍，怎么会有人不喜欢呢\n（我要批评某人听的歌比我多哼，不过我更要感谢某人让我在大学体会到如此感受）' },
+  // 7
+  { file:'IMG_20240604_220505.jpg', layout:'f', text:'于是我们开启了漫长的学习（X）幽会（√）时间~\n每晚固定刷新一个小小NPC，学完习一起去甲子湖遛弯的日子也是幸福极了' },
+  // 8
+  { file:'IMG_20240425_184225.jpg', layout:'a', text:'我们一起参加你策划的活动，领到的小小奖励，\nBtw：你极力邀请我去参加你们的活动，着实是盛情难却哈' },
+  // 9
+  { file:'Screenshot_20240420_193926.jpg', layout:'b', text:'当时感觉还挺暧昧的，不过后来发现我误会了哈哈哈哈哈' },
+  // 10
+  { file:'IMG_20240504_190306.jpg', layout:'c', text:'这两支我还有好好保存哦，随口一说就被记住的感觉真不错，你小子真厉害' },
+  // 11
+  { file:'wx_camera_1716469613677.jpg', layout:'d', text:'其实我们都很有心~' },
+  // 12
+  { file:'IMG_20240605_214559.jpg', layout:'e', text:'有天晚上下了课我骑车乱转，其实当时闷得很想找你出来但是没什么理由，但现在想想，其实根本不需要理由！！！\n（腼腆让我们（也不全是）错过了不知多久，一年还是三年…）' },
+  // 13
+  { file:'IMG_20240423_155504.jpg', layout:'f', text:'附一张UJN的图片，美！美！美！' },
+  // 14
+  { file:'mmexport1744298313255.jpg', layout:'a', text:'一起去美术馆啦，又是你喊得 哈哈哈哈哈' },
+  // 15
+  { file:'mmexport1744298275706.jpg', layout:'b', text:'一张大师拍的神图' },
+  // 16
+  { file:'mmexport1749720253086.jpg', layout:'c', text:'偷拍我，还是大师出品' },
+  // 17-19: 大学末尾 3-photo group
+  { file:'IMG_20250531_033622.jpg', layout:'d', text:'在大学的末尾我们体会了如此愉悦的生活' },
+  { file:'IMG_20250531_032054.jpg', layout:'d', text:'在大学的末尾我们体会了如此愉悦的生活' },
+  { file:'mmexport1748705074731.jpg', layout:'d', text:'在大学的末尾我们体会了如此愉悦的生活' },
+  // 20
+  { file:'mmexport1749720212686.jpg', layout:'e', text:'第一张照片，不太敢亲密的\n（这一天我们之间发生了一件大事）' },
+  // 21-22: 超绝出图 paired
+  { file:'mmexport1749334946421.jpg', layout:'f', text:'领先版本一年的超绝出图' },
+  { file:'mmexport1749334960479.jpg', layout:'f', text:'领先版本一年的超绝出图' },
+  // 23
+  { file:'mmexport1749720319402.jpg', layout:'a', text:'26.6.12 我们在一起啦，咱俩真有福，那天我人都是萌萌（蒙蒙）的\n在一起这件事，考虑（实则呆住）了十几分钟，还是让心决定吧！' },
+  // 24
+  { file:'mmexport1749720326303.jpg', layout:'b', text:'幸福要溢出屏幕啦' },
+  // 25
+  { file:'IMG_20250612_200002.jpg', layout:'c', text:'我们的第一束花，漂亮吧（人比花美）' },
+  // 26
+  { file:'IMG_20250615_170502.jpg', layout:'d', text:'植物园大美，你真无敌了' },
+  // 27
+  { file:'IMG_20250615_194340.jpg', layout:'e', text:'随手一拍都这么美' },
+  // 28
+  { file:'IMG_20250622_145836_edit_87410.jpg', layout:'f', text:'呆呆又萌萌！' },
+  // 29
+  { file:'IMG_20250618_075612.jpg', layout:'a', text:'紧张又刺激的面试迎来了一个好结果哦' },
+  // 30-31: 新工科楼 paired
+  { file:'IMG_20250622_191422.jpg', layout:'b', text:'去新工科楼玩~' },
+  { file:'IMG_20250622_192928.jpg', layout:'b', text:'去新工科楼玩~' },
+  // 32
+  { file:'IMG_20250622_191245.jpg', layout:'c', text:'哪个狗哈哈哈哈哈（当然不是偷拍狗嘿嘿）' },
+  // 33
+  { file:'IMG_20250622_194210.jpg', layout:'d', text:'骑车带你的日子真舒服呀' },
+  // 34
+  { file:'IMG_20250622_194720.jpg', layout:'e', text:'这张图片叫：你站在光里在未来等我~' },
+  // 35
+  { file:'IMG_20250627_005759.jpg', layout:'f', text:'你说是狗开车哈哈哈' },
+  // 36
+  { file:'IMG_20250628_153527.jpg', layout:'a', text:'这一天你回了淄博呜呜呜' },
+  // 37
+  { file:'Screenshot_20250712_012359.jpg', layout:'b', text:'其实打视频的日子，也可以很幸福' },
+  // 38
+  { file:'IMG_20250929_210538.jpg', layout:'c', text:'我们终终终终终于见面了\n（我忘记了是不是第一次）求聊天记录找回教程！' },
+  // 39
+  { file:'IMG_20250927_171038.jpg', layout:'d', text:'Piu亮吧，还带了半箱子小东西给你嘿嘿' },
+  // 40
+  { file:'IMG_20251010_222716.jpg', layout:'e', text:'哎哟我，俩人无敌了' },
+  // 41
+  { file:'IMG_20251010_223306.jpg', layout:'f', text:'其实我偷拍也挺有一套呢~' },
+  // 42
+  { file:'IMG_20251018_181046.jpg', layout:'a', text:'宁来济南了（这天其实一直在担惊受怕阿姨开车来济南）' },
+  // 43
+  { file:'IMG_20251018_155257.jpg', layout:'b', text:'这么一看，天下第一泉果然名不虚传嘞' },
+  // 44-45: ❗IMG_20251018_155257 重复 + IMG_20251025_184044 paired
+  { file:'IMG_20251018_155257.jpg', layout:'c', text:'去找你的路上也要学习呢~' },
+  { file:'IMG_20251025_184044.jpg', layout:'c', text:'去找你的路上也要学习呢~' },
+  // 46
+  { file:'IMG_20251026_193639.jpg', layout:'d', text:'去奥帆广场啦\n这一天我是男明星嘿嘿' },
+  // 47
+  { file:'IMG_20251115_135230.jpg', layout:'e', text:'我们去吃了一个很棒的烤肉' },
+  // 48-49: 浪漫不言而喻 paired
+  { file:'IMG_20251228_171543.jpg', layout:'f', text:'浪漫不言而喻~' },
+  { file:'IMG_20251228_171654.jpg', layout:'f', text:'浪漫不言而喻~' },
+  // 50-51: ❗IMG_20251228_171654 重复 + IMG_20260130_174222 paired
+  { file:'IMG_20251228_171654.jpg', layout:'a', text:'可爱嘟' },
+  { file:'IMG_20260130_174222.jpg', layout:'a', text:'可爱嘟' },
+  // 52
+  { file:'IMG_20260313_182526.jpg', layout:'b', text:'一起去帮我看衣服，话说这裤子真的那么好看嘛，你很喜欢呢' },
+  // 53
+  { file:'IMG_20260328_121820.jpg', layout:'c', text:'你来济南啦，百花公园果然美哦\n（突然发现你已经连续三年去百花公园了耶）' },
+  // 54: ❗IMG_20260328_121820 重复
+  { file:'IMG_20260328_121820.jpg', layout:'d', text:'到青岛了，中山公园的郁金香们值得再去！' },
+  // 55-56: 南京见面 paired
+  { file:'IMG_20260516_192856.jpg', layout:'e', text:'没想到到无锡以后第一次见面会是在南京呢' },
+  { file:'IMG_20260516_190234.jpg', layout:'e', text:'没想到到无锡以后第一次见面会是在南京呢' },
+  // 57-58: 情侣头像 paired
+  { file:'mmexport1779508743084.jpg', layout:'f', text:'在情侣头像产出后，随橙想呢，第二天俺就飞奔至青岛了' },
+  { file:'Screenshot_20260522_184418.jpg', layout:'f', text:'在情侣头像产出后，随橙想呢，第二天俺就飞奔至青岛了' },
+  // 59: ✨新增
+  { file:'IMG_20260606_192851.jpg', layout:'a', text:'我们又在扬州见面啦，\n穷游富有不如少年游，彼此身边还有佳人相伴' }
 ];
 const pName = f => f.replace(/\.[^.]+$/, '').replace(/[_-]/g, ' ');
 const pDate = f => { const m = f.match(/(\d{4})(\d{2})(\d{2})/); return m ? `${m[1]}.${m[2]}.${m[3]}` : ''; };
 
+// Group consecutive photos with the same text into story groups
+const STORY_GROUPS = [];
+(function() {
+  let cur = null;
+  PHOTOS.forEach((ph, i) => {
+    if (!cur || cur.text !== ph.text) {
+      cur = { photos: [ph], text: ph.text, layout: ph.layout, _startIdx: i };
+      STORY_GROUPS.push(cur);
+    } else {
+      cur.photos.push(ph);
+    }
+  });
+})();
+// Map each photo index → its group page index
+const photoToGroup = [];
+STORY_GROUPS.forEach((g, gi) => {
+  for (let pi = g._startIdx; pi < g._startIdx + g.photos.length; pi++) {
+    photoToGroup[pi] = gi;
+  }
+});
+
 const MEM_START = 3;
-const END_IDX = 3 + PHOTOS.length;
+const END_IDX = 3 + STORY_GROUPS.length;
 let cur = 0, busy = false, fromS2 = false;
 const storyIdxs = [];
 for (let i = MEM_START; i < END_IDX; i++) storyIdxs.push(i);
@@ -653,7 +741,7 @@ function makeFloats() {
       ph: Math.random() * Math.PI * 2
     };
     fb.x = fb.bx; fb.y = fb.by; fbs.push(fb);
-    img.addEventListener('click', () => { fromS2 = true; go(MEM_START + i); });
+    img.addEventListener('click', () => { fromS2 = true; go(MEM_START + photoToGroup[i]); });
   });
 
   floatGrid.style.height = totalH + 'px';
@@ -690,7 +778,7 @@ function doReveal(idx, stage, photo, text, hint) {
 function resetStory(idx, stage) {
   storyStates[idx] = false;
   stage.classList.remove('revealed');
-  const photo = stage.querySelector('.story-photo, .polaroid-wrap');
+  const photo = stage.querySelector('.story-photo, .polaroid-wrap, .photo-row');
   const text = stage.querySelector('.story-text');
   const hint = stage.querySelector('.story-hint');
   if (photo) photo.classList.remove('revealed');
@@ -757,39 +845,76 @@ function setupFilm(idx, sec, stage) {
 // pattern registry
 const storyPatterns = {};
 
-function makeMemSection(idx, ph) {
+function makeMemSection(idx, g) {
   const sec = document.createElement('section');
-  sec.className = 'section memory-section layout-' + ph.layout;
   sec.id = 's' + idx;
+  const isMulti = g.photos.length > 1;
 
-  const nm = pName(ph.file), dt = pDate(ph.file);
-  const fullSrc = IMG_F + toWebp(ph.file);
-  const fullJpg = IMG_BASE + ph.file;
-  const dataSrc = fullSrc;
-  const T = ph.text || nm;
-
-  // layout HTML templates
-  const html = {
-    a: `<div class="story-stage"><img class="story-photo" data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt="${nm}"><time class="story-date">${dt}</time><p class="story-text">${T}</p><p class="story-hint">轻触照片 · 展开回忆</p></div>`,
-    b: `<div class="story-stage"><div class="polaroid-wrap"><img data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt="${nm}" style="width:clamp(200px,50vw,340px);object-fit:cover;aspect-ratio:4/3"><p class="caption">${dt}</p></div><p class="story-text">${T}</p><p class="story-hint">轻触照片 · 展开回忆</p></div>`,
-    c: `<div class="story-stage"><div class="timeline-dot"></div><p class="timeline-date">${dt || nm}</p><img class="story-photo" data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt="${nm}"><p class="story-text">${T}</p><time class="story-date">${dt}</time><p class="story-hint">轻触照片 · 展开回忆</p></div>`,
-    d: `<img class="blur-bg" data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt=""><div class="story-stage"><img class="story-photo" data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt="${nm}"><p class="story-text">${T}</p><time class="story-date">${dt}</time><p class="story-hint">轻触照片 · 展开回忆</p></div>`,
-    e: `<div class="story-stage"><div class="envelope" id="env-${idx}"><div class="envelope-content"><img data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt="${nm}"><p>${nm}</p><time>${dt}</time></div><div class="envelope-flap"></div></div><p class="envelope-hint">点击信封打开回忆</p><p class="story-text" style="display:none">${T}</p></div>`,
-    f: `<img class="film-bg" data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt=""><div class="story-stage"><p class="film-text">${T}</p><time class="story-date">${dt}</time></div>`
-  }[ph.layout];
-
-  sec.innerHTML = html;
-  $('app').appendChild(sec);
-
-  const stage = sec.querySelector('.story-stage');
-
-  // wire pattern
-  if (ph.layout === 'e') {
-    storyPatterns[idx] = setupEnvelope(idx, sec, stage);
-  } else if (ph.layout === 'f') {
-    storyPatterns[idx] = setupFilm(idx, sec, stage);
+  if (isMulti) {
+    // Multi-photo group: side-by-side layout, standard reveal behavior
+    sec.className = 'section memory-section layout-group';
+    const imgs = g.photos.map(ph => {
+      const nm = pName(ph.file), dt = pDate(ph.file);
+      const src = IMG_F + toWebp(ph.file), fb = IMG_BASE + ph.file;
+      return `<img class="group-photo" data-src="${src}" data-fallback="${fb}" src="" alt="${nm}" title="${dt}">`;
+    }).join('');
+    sec.innerHTML = `<div class="story-stage">
+      <div class="photo-row">${imgs}</div>
+      <p class="story-text">${g.text}</p>
+      <p class="story-hint">轻触照片 · 展开回忆</p>
+    </div>`;
+    $('app').appendChild(sec);
+    const stage = sec.querySelector('.story-stage');
+    const photoRow = stage.querySelector('.photo-row');
+    const textEl = stage.querySelector('.story-text');
+    const hintEl = stage.querySelector('.story-hint');
+    // Mirror standard: click → photo-row shrinks to corner, text appears
+    const reveal = () => doReveal(idx, stage, photoRow, textEl, hintEl);
+    photoRow.addEventListener('click', (e) => {
+      if (storyStates[idx]) {
+        const gp = e.target.closest('.group-photo');
+        if (gp && gp.src && !/\/$/.test(gp.src) && !busy) {
+          e.stopPropagation();
+          lbImg.src = gp.src; lb.classList.add('show');
+        }
+        return;
+      }
+      reveal();
+    });
+    // Blank area of stage → reveal (before) / no-op (after → global handles advance)
+    stage.addEventListener('click', (e) => {
+      if (e.target.closest('.photo-row')) return;
+      if (!storyStates[idx]) reveal();
+    });
+    storyPatterns[idx] = { reset() { resetStory(idx, stage); } };
   } else {
-    storyPatterns[idx] = setupStandard(idx, sec, stage);
+    // Single-photo: envelope (e) and film (f) unified to standard layout (a)
+    const ph = g.photos[0];
+    const layout = (ph.layout === 'e' || ph.layout === 'f') ? 'a' : ph.layout;
+    sec.className = 'section memory-section layout-' + layout;
+    const nm = pName(ph.file), dt = pDate(ph.file);
+    const fullSrc = IMG_F + toWebp(ph.file);
+    const fullJpg = IMG_BASE + ph.file;
+    const dataSrc = fullSrc;
+    const T = ph.text || nm;
+
+    const html = {
+      a: `<div class="story-stage"><img class="story-photo" data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt="${nm}"><time class="story-date">${dt}</time><p class="story-text">${T}</p><p class="story-hint">轻触照片 · 展开回忆</p></div>`,
+      b: `<div class="story-stage"><div class="polaroid-wrap"><img data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt="${nm}" style="width:clamp(200px,50vw,340px);object-fit:cover;aspect-ratio:4/3"><p class="caption">${dt}</p></div><p class="story-text">${T}</p><p class="story-hint">轻触照片 · 展开回忆</p></div>`,
+      c: `<div class="story-stage"><div class="timeline-dot"></div><p class="timeline-date">${dt || nm}</p><img class="story-photo" data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt="${nm}"><p class="story-text">${T}</p><time class="story-date">${dt}</time><p class="story-hint">轻触照片 · 展开回忆</p></div>`,
+      d: `<img class="blur-bg" data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt=""><div class="story-stage"><img class="story-photo" data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt="${nm}"><p class="story-text">${T}</p><time class="story-date">${dt}</time><p class="story-hint">轻触照片 · 展开回忆</p></div>`,
+      f: `<img class="film-bg" data-src="${dataSrc}" data-fallback="${fullJpg}" src="" alt=""><div class="story-stage"><p class="film-text">${T}</p><time class="story-date">${dt}</time></div>`
+    }[layout];
+
+    sec.innerHTML = html;
+    $('app').appendChild(sec);
+
+    const stage = sec.querySelector('.story-stage');
+    if (layout === 'f') {
+      storyPatterns[idx] = setupFilm(idx, sec, stage);
+    } else {
+      storyPatterns[idx] = setupStandard(idx, sec, stage);
+    }
   }
 
   return sec;
@@ -819,7 +944,7 @@ function preloadNext(idx) {
   setTimeout(() => loadSectionImages(idx), 200);
 }
 
-PHOTOS.forEach((ph, i) => makeMemSection(MEM_START + i, ph));
+STORY_GROUPS.forEach((g, i) => makeMemSection(MEM_START + i, g));
 
 // === NAVIGATION ===
 function secEl(i) {
@@ -850,7 +975,7 @@ function go(tgt) {
     }
   }
 
-  cur = tgt; updNav(); updSec();
+  cur = tgt; updNav(); updSec(); updDebugLabel();
   setTimeout(() => { busy = false; }, 800);
 }
 
@@ -893,6 +1018,28 @@ btnP.addEventListener('click', prv);
 debugBtn.addEventListener('click', (e) => { e.stopPropagation();
   const tgt = window._debugJump !== undefined ? window._debugJump : 2;
   busy = false; go(tgt);
+});
+
+// Debug label
+const debugLabel = document.getElementById('debug-label');
+function updDebugLabel() {
+  if (cur === 0) debugLabel.textContent = 'S0';
+  else if (cur === 1) debugLabel.textContent = 'S1';
+  else if (cur === 2) debugLabel.textContent = 'S2';
+  else if (cur === END_IDX) debugLabel.textContent = 'End';
+  else debugLabel.textContent = 'S' + cur + ' (p' + (cur - MEM_START) + ')';
+}
+
+// Debug page jump
+$('jump-btn').addEventListener('click', () => {
+  const v = parseInt($('jump-input').value, 10);
+  if (!isNaN(v) && v >= 0 && v < TOTAL_PAGES) { busy = false; go(v); }
+});
+$('jump-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const v = parseInt(e.target.value, 10);
+    if (!isNaN(v) && v >= 0 && v < TOTAL_PAGES) { busy = false; go(v); }
+  }
 });
 
 // global click-to-advance
@@ -1158,6 +1305,11 @@ function startMusic() {
   bgm.play().then(() => {
     musicBtn.classList.add('playing'); musicBtn.textContent = '♫';
   }).catch(() => { musicPlaying = false; });
+  bgm.onended = () => {
+    bgm.src = 'https://cdn.jsdelivr.net/gh/hellogit-668/anniversary@main/多幸运.mp3';
+    bgm.loop = true;
+    bgm.play();
+  };
 }
 
 musicBtn.addEventListener('click', () => {
@@ -1169,7 +1321,6 @@ musicBtn.addEventListener('click', () => {
 const _go = go;
 go = function (tgt) {
   _go(tgt);
-  // S1 fireworks
   if (tgt === 1) { fwOn = true; setAuto(1, 30000); setTimeout(() => { if (cur === 1) startFwSeq(); }, 1500); }
   if (tgt === 0 || tgt === 1 || tgt === 2) { if (fwIv && tgt !== 1) stopFwSeq(); }
 };
@@ -1190,10 +1341,11 @@ lb.addEventListener('click',e=>{e.stopPropagation();lb.classList.remove('show');
 const debugIdx = parseInt(new URL(location.href).searchParams.get('p'), 10);
 if (!isNaN(debugIdx) && debugIdx >= 0 && debugIdx < PHOTOS.length) {
   // ?p=12 → 点击 ⚡ 跳转到第 n 张照片故事页（0-indexed）
-  window._debugJump = MEM_START + debugIdx;
+  window._debugJump = MEM_START + photoToGroup[debugIdx];
 }
 console.log('%c 我们的回忆 %c已就绪', 'font-size:20px;color:#ffd89b', '');
 console.log(PHOTOS.length + ' 张照片 | 爱心粒子 | 懒加载 | WebP');
+updDebugLabel();
 </script>
 </body>
 </html>
