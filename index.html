@@ -58,7 +58,7 @@ img{display:block;max-width:100%}
 
 /* ===== Story stage — click interaction ===== */
 .story-stage{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;padding:clamp(16px,4vw,32px)}
-.story-photo{cursor:pointer;transition:all 1.5s cubic-bezier(0.25,0.1,0.25,1);border-radius:14px;object-fit:cover;width:clamp(240px,60vw,420px);box-shadow:0 16px 56px rgba(0,0,0,0.5)}
+.story-photo{cursor:pointer;transition:width 1.5s cubic-bezier(0.25,0.1,0.25,1),border-radius 1.5s cubic-bezier(0.25,0.1,0.25,1),box-shadow 1.5s cubic-bezier(0.25,0.1,0.25,1);border-radius:14px;object-fit:cover;width:clamp(240px,60vw,420px);box-shadow:0 16px 56px rgba(0,0,0,0.5)}
 .story-photo.revealed{width:clamp(70px,16vw,110px)!important;position:fixed!important;top:clamp(14px,3.5vw,28px)!important;left:clamp(14px,3.5vw,28px)!important;border-radius:10px!important;z-index:50!important;box-shadow:0 4px 20px rgba(0,0,0,0.5)!important}
 .story-text{color:#fff;opacity:0;transition:opacity 1.2s ease 0.6s;text-align:center;max-width:80vw;line-height:1.9;letter-spacing:2px;font-size:clamp(14px,2.5vw,18px);margin-top:24px}
 .story-text.visible{opacity:0.85}
@@ -108,8 +108,8 @@ img{display:block;max-width:100%}
 .layout-f .film-text.visible{opacity:0.9}
 
 /* ===== Layout Group: multi-photo side-by-side ===== */
-.layout-group .photo-row{display:flex;gap:10px;justify-content:center;align-items:flex-start;flex-wrap:wrap;transition:all 1.5s cubic-bezier(0.25,0.1,0.25,1)}
-.layout-group .group-photo{border-radius:12px;object-fit:cover;cursor:pointer;width:clamp(130px,38vw,260px);height:clamp(130px,38vw,260px);box-shadow:0 8px 32px rgba(0,0,0,0.45);transition:all 1.5s cubic-bezier(0.25,0.1,0.25,1)}
+.layout-group .photo-row{display:flex;gap:10px;justify-content:center;align-items:flex-start;flex-wrap:wrap;transition:gap 1.5s cubic-bezier(0.25,0.1,0.25,1)}
+.layout-group .group-photo{border-radius:12px;object-fit:cover;cursor:pointer;width:clamp(130px,38vw,260px);height:clamp(130px,38vw,260px);box-shadow:0 8px 32px rgba(0,0,0,0.45);transition:width 1.5s cubic-bezier(0.25,0.1,0.25,1),height 1.5s cubic-bezier(0.25,0.1,0.25,1),border-radius 1.5s cubic-bezier(0.25,0.1,0.25,1),box-shadow 1.5s cubic-bezier(0.25,0.1,0.25,1)}
 .layout-group .group-photo:active{transform:scale(0.95)}
 /* Revealed: shrink photo-row to corner (mirrors .story-photo.revealed) */
 .layout-group .photo-row.revealed{position:fixed!important;top:clamp(14px,3.5vw,28px)!important;left:clamp(14px,3.5vw,28px)!important;z-index:50!important;gap:5px!important}
@@ -1307,7 +1307,7 @@ function startMusic() {
   bgmIntro.play().then(() => {
     musicBtn.classList.add('playing'); musicBtn.textContent = '♫';
   }).catch(() => { musicPlaying = false; });
-  bgmIntro.onended = () => { bgm.play(); };
+  bgmIntro.onended = () => { bgm.play().catch(() => {}); };
 }
 
 musicBtn.addEventListener('click', () => {
