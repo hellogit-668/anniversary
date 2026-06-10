@@ -244,7 +244,8 @@ img{display:block;max-width:100%}
   <canvas id="card-canvas" width="800" height="1200"></canvas>
 
   <!-- Background music -->
-  <audio id="bgm" preload="none" src="https://cdn.jsdelivr.net/gh/hellogit-668/anniversary@e9fd4b7/我们俩.mp3"></audio>
+  <audio id="bgm-intro" preload="auto" src="https://cdn.jsdelivr.net/gh/hellogit-668/anniversary@main/我们俩.mp3"></audio>
+  <audio id="bgm" loop preload="auto" src="https://cdn.jsdelivr.net/gh/hellogit-668/anniversary@main/多幸运.mp3"></audio>
   <!-- Lightbox -->
   <div id="lightbox"><img src="" alt=""></div>
 </div>
@@ -422,7 +423,7 @@ const TOTAL_PAGES = PAGE_ORDER.length;
     img.src = IMG_F + toWebp(PHOTOS[i].file);
     img.onload = img.onerror = () => { i++; setTimeout(next, 80); };
   }
-  setTimeout(next, 600);
+  setTimeout(next, 200);
 })();
 
 // === DOM ===
@@ -1296,24 +1297,21 @@ async function dlAll() {
 }
 
 // === MUSIC ===
+const bgmIntro = $('bgm-intro');
 const bgm = $('bgm');
 let musicPlaying = false;
 
 function startMusic() {
   if (musicPlaying) return;
   musicPlaying = true;
-  bgm.play().then(() => {
+  bgmIntro.play().then(() => {
     musicBtn.classList.add('playing'); musicBtn.textContent = '♫';
   }).catch(() => { musicPlaying = false; });
-  bgm.onended = () => {
-    bgm.src = 'https://cdn.jsdelivr.net/gh/hellogit-668/anniversary@main/多幸运.mp3';
-    bgm.loop = true;
-    bgm.play();
-  };
+  bgmIntro.onended = () => { bgm.play(); };
 }
 
 musicBtn.addEventListener('click', () => {
-  if (musicPlaying) { bgm.pause(); musicPlaying = false; musicBtn.classList.remove('playing'); musicBtn.textContent = '♪'; }
+  if (musicPlaying) { bgmIntro.pause(); bgm.pause(); musicPlaying = false; musicBtn.classList.remove('playing'); musicBtn.textContent = '♪'; }
   else startMusic();
 });
 
