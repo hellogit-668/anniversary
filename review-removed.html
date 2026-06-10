@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4张移除照片预览</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; color: #eee; font-family: system-ui, sans-serif; padding: 20px; }
+  h1 { text-align: center; font-size: 18px; margin-bottom: 8px; }
+  .sub { text-align: center; color: #888; font-size: 13px; margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; max-width: 1000px; margin: 0 auto; }
+  .card { background: #16213e; border-radius: 12px; overflow: hidden; }
+  .card img { width: 100%; display: block; }
+  .card .info { padding: 10px 14px; font-size: 12px; color: #aaa; }
+  .card .name { color: #e94560; font-weight: bold; margin-bottom: 4px; }
+  .btn-row { text-align: center; margin-top: 24px; }
+  button { background: #e94560; color: #fff; border: none; padding: 10px 28px; border-radius: 8px; font-size: 14px; cursor: pointer; margin: 0 6px; }
+  button.restore { background: #0f3460; }
+</style>
+</head>
+<body>
+<h1>已移除的 4 张照片</h1>
+<p class="sub">审核后决定是否恢复</p>
+<div class="grid" id="grid"></div>
+<div class="btn-row">
+  <button class="restore" onclick="action('restore')">全部恢复</button>
+  <button onclick="action('keep-removed')">保持移除</button>
+</div>
+<script>
+const photos = [
+  { file: 'IMG_20251025_171244', name: 'IMG_20251025_171244.jpg' },
+  { file: 'IMG_20251228_175758', name: 'IMG_20251228_175758.jpg' },
+  { file: 'IMG_20260411_180402', name: 'IMG_20260411_180402.jpg' },
+  { file: 'Screenshot_20260601_221816', name: 'Screenshot_20260601_221816.jpg' },
+];
+const grid = document.getElementById('grid');
+photos.forEach((p, i) => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <img src="图片们/full/${p.file}.webp" alt="${p.name}" loading="lazy">
+    <div class="info">
+      <div class="name">#${i+1} ${p.name}</div>
+      <div>full WebP 仍保留在 图片们/full/ 目录</div>
+    </div>`;
+  grid.appendChild(card);
+});
+
+function action(type) {
+  if (type === 'restore') {
+    alert('确认后我会将这4张恢复回 PHOTOS 数组并重新构建。\n\n请告诉我：\n- 放在哪些位置？\n- 用什么文案？');
+  } else {
+    alert('确认后保持当前状态，这4张不恢复。\n可以后续删掉它们对应的 WebP 文件。');
+  }
+}
+</script>
+</body>
+</html>
